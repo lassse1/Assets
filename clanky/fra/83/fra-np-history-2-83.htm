@@ -1,0 +1,1164 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="windows-1250">
+<meta name="description" content="Brejk stats">
+<style>
+  html, body {border: 0px; margin: 0px; padding: 0px; background-color: white;}
+  table {margin: 0px auto;}
+  a, a:visited, a:active {text-decoration: underline; color: light-blue;}
+  a:hover {text-decoration: none;	color: light-blue;}
+  caption {font-family: Verdana, sans-serif; color: rgb(79, 129, 189);}
+  .tym {text-align: left; width: 150px;}
+  .cislo {text-align: center;}
+  .tab_stats {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_stats_tymy {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .hlava_tab_stats_tr {border: 0px solid currentColor; border-collapse: collapse; background-color: rgb(79, 129, 189);}
+  .sudy_radek_tab_stats {border: 0px solid currentColor; border-collapse: collapse; background-color: rgb(204, 239, 252);}
+  .male_pismo {font: 7px Verdana, sans-serif;}
+  .mensi_pismo {font-size: 8px; font-family: Verdana, sans-serif;}
+  .tab_vysledek {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_sudy {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_middle {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_strelci {font: 9px Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .nadpis1 {font-family: Verdana, sans-serif; color: rgb(79, 129, 189); }
+  .hr_col3, .hr_col4, .hr_col5, .hr_col6, .hr_col7, .hr_col8, .hr_col9, .hr_col10, .hr_col11, .hr_col12, .hr_col13, .hr_col14, .hr_col15, .hr_col16, .hr_col17 { width: 20px; text-align: center; vertical - align: middle; }
+</style>
+</head>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tables = document.querySelectorAll("table.tab_stats_tymy");
+
+    tables.forEach((table) => {
+        const headerRow = table.querySelector("tr.hlava_tab_stats_tr");
+        if (!headerRow) return;
+
+        const headers = headerRow.querySelectorAll("td");
+
+        const columnMap = [];
+        let realIndex = 0;
+        headers.forEach((header) => {
+            const span = parseInt(header.getAttribute("colspan") || "1");
+            columnMap.push(realIndex);
+            realIndex += span;
+
+            // Připravíme span pro šipku
+            const arrow = document.createElement("span");
+            arrow.className = "sort-arrow";
+            arrow.style.marginLeft = "4px";
+            header.appendChild(arrow);
+        });
+
+        headers.forEach((header, i) => {
+            header.style.cursor = "pointer";
+            header.addEventListener("click", () => {
+                sortTableByColumn(table, headers, columnMap[i], i);
+            });
+        });
+    });
+
+    function sortTableByColumn(table, headers, columnIndex, headerIndex) {
+        const rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)"));
+
+        const isNumeric = rows.every(row => {
+            const cellText = row.cells[columnIndex]?.innerText.trim();
+            return /^-?\d+(\.\d+)?%?$/.test(cellText);
+        });
+
+        const currentDirection = headerSortDirection(headers, headerIndex);
+        const multiplier = currentDirection === "asc" ? 1 : -1;
+
+        rows.sort((a, b) => {
+            let aText = a.cells[columnIndex]?.innerText.trim();
+            let bText = b.cells[columnIndex]?.innerText.trim();
+
+            if (isNumeric) {
+                aText = aText.replace("%", "").replace(",", ".");
+                bText = bText.replace("%", "").replace(",", ".");
+                return (parseFloat(aText) - parseFloat(bText)) * multiplier;
+            } else {
+                return aText.localeCompare(bText) * multiplier;
+            }
+        });
+
+        rows.forEach(row => table.appendChild(row));
+
+        // smažeme šipky u všech
+        headers.forEach(h => {
+            const arrow = h.querySelector(".sort-arrow");
+            if (arrow) arrow.textContent = "";
+            h.removeAttribute("data-sort");
+        });
+
+        // nastavíme šipku na aktuální
+        const header = headers[headerIndex];
+        header.setAttribute("data-sort", currentDirection);
+        const arrow = header.querySelector(".sort-arrow");
+        if (arrow) arrow.textContent = currentDirection === "asc" ? "^" : "ˇ";
+    }
+
+    function headerSortDirection(headers, headerIndex) {
+        const header = headers[headerIndex];
+        const current = header.getAttribute("data-sort");
+        return current === "asc" ? "desc" : "asc";
+    }
+});
+</script>
+<body>
+<h1 align="center" class="nadpis1">Historická tabulka finále NP</h1>
+<h3 align="center">Od 2. sezony do 83. sezony</h3>
+<!-- Tabulka tymu -->
+<table class="tab_stats" align="center">
+  <caption><strong>Tabulka týmů</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>Poz</strong></td>
+  <td class="cislo"><strong>Země</strong></td>
+  <td class="tym"><strong>Jméno týmu</strong></td>
+  <td class="cislo"><strong>Utk</strong></td>
+  <td class="cislo"><strong>Vý</strong></td>
+  <td class="cislo"><strong>Re</strong></td>
+  <td class="cislo"><strong>Pr</strong></td>
+  <td class="cislo" colspan="3"><strong>Skore</strong></td>
+  <td class="cislo"><strong>Roz</strong></td>
+  <td class="cislo" align="center"><strong>Body</strong></td>
+  <td class="cislo" align="center"><strong>%</strong></td>
+  <td class="cislo"><strong>Poč</strong></td>
+  <td class="cislo"><strong>W</strong></td>
+  <td class="cislo"><strong>F</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">1.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">La Vechia Signora</td>
+  <td class="hr_col2" style="color:green">34</td>
+  <td class="hr_col3" style="color:green">24</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">10</td>
+  <td class="hr_col6" style="color:green">&nbsp;81</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6" style="color:red">45</td>
+  <td class="hr_col7">&nbsp;36</td>
+  <td class="cislo" align="center">&nbsp;<strong>72</strong></td>
+  <td class="hr_col8">&nbsp;70.59</td>
+  <td class="hr_col8">&nbsp;34</td>
+  <td class="hr_col8" style="color:green">24</td>
+  <td class="hr_col8" style="color:green">34</td>
+</tr>
+<tr>
+  <td class="hr_col0">2.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">LOSC Lille Metropole</td>
+  <td class="hr_col2">19</td>
+  <td class="hr_col3">16</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">3</td>
+  <td class="hr_col6">&nbsp;63</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">20</td>
+  <td class="hr_col7" style="color:green">&nbsp;43</td>
+  <td class="cislo" align="center">&nbsp;<strong>48</strong></td>
+  <td class="hr_col8">&nbsp;84.21</td>
+  <td class="hr_col8">&nbsp;19</td>
+  <td class="hr_col8">16</td>
+  <td class="hr_col8">19</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">3.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Ac Vainqueurs Hradec Králové</td>
+  <td class="hr_col2">12</td>
+  <td class="hr_col3">6</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">6</td>
+  <td class="hr_col6">&nbsp;18</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">19</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>18</strong></td>
+  <td class="hr_col8">&nbsp;50</td>
+  <td class="hr_col8">&nbsp;12</td>
+  <td class="hr_col8">6</td>
+  <td class="hr_col8">12</td>
+</tr>
+<tr>
+  <td class="hr_col0">4.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC Dawdlers Chambéry</td>
+  <td class="hr_col2">4</td>
+  <td class="hr_col3">4</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;17</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">4</td>
+  <td class="hr_col7">&nbsp;13</td>
+  <td class="cislo" align="center">&nbsp;<strong>12</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;4</td>
+  <td class="hr_col8">4</td>
+  <td class="hr_col8">4</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">5.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC Sázavan United</td>
+  <td class="hr_col2">10</td>
+  <td class="hr_col3">4</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">6</td>
+  <td class="hr_col6">&nbsp;12</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">18</td>
+  <td class="hr_col7">&nbsp;-6</td>
+  <td class="cislo" align="center">&nbsp;<strong>12</strong></td>
+  <td class="hr_col8">&nbsp;40</td>
+  <td class="hr_col8">&nbsp;10</td>
+  <td class="hr_col8">4</td>
+  <td class="hr_col8">10</td>
+</tr>
+<tr>
+  <td class="hr_col0">6.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Chattelreault</td>
+  <td class="hr_col2">4</td>
+  <td class="hr_col3">3</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;8</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">4</td>
+  <td class="hr_col7">&nbsp;4</td>
+  <td class="cislo" align="center">&nbsp;<strong>9</strong></td>
+  <td class="hr_col8">&nbsp;75</td>
+  <td class="hr_col8">&nbsp;4</td>
+  <td class="hr_col8">3</td>
+  <td class="hr_col8">4</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">7.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC Bubákov Stochov</td>
+  <td class="hr_col2">5</td>
+  <td class="hr_col3">3</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">2</td>
+  <td class="hr_col6">&nbsp;13</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">9</td>
+  <td class="hr_col7">&nbsp;4</td>
+  <td class="cislo" align="center">&nbsp;<strong>9</strong></td>
+  <td class="hr_col8">&nbsp;60</td>
+  <td class="hr_col8">&nbsp;5</td>
+  <td class="hr_col8">3</td>
+  <td class="hr_col8">5</td>
+</tr>
+<tr>
+  <td class="hr_col0">8.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Paris Saint Germain</td>
+  <td class="hr_col2">7</td>
+  <td class="hr_col3">3</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">4</td>
+  <td class="hr_col6">&nbsp;10</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">16</td>
+  <td class="hr_col7">&nbsp;-6</td>
+  <td class="cislo" align="center">&nbsp;<strong>9</strong></td>
+  <td class="hr_col8">&nbsp;42.86</td>
+  <td class="hr_col8">&nbsp;7</td>
+  <td class="hr_col8">3</td>
+  <td class="hr_col8">7</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">9.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">AC Maroko</td>
+  <td class="hr_col2">3</td>
+  <td class="hr_col3">2</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;9</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">5</td>
+  <td class="hr_col7">&nbsp;4</td>
+  <td class="cislo" align="center">&nbsp;<strong>6</strong></td>
+  <td class="hr_col8">&nbsp;66.67</td>
+  <td class="hr_col8">&nbsp;3</td>
+  <td class="hr_col8">2</td>
+  <td class="hr_col8">3</td>
+</tr>
+<tr>
+  <td class="hr_col0">10.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">F.C. Rouen de Michelin</td>
+  <td class="hr_col2">4</td>
+  <td class="hr_col3">2</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">2</td>
+  <td class="hr_col6">&nbsp;11</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">10</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>6</strong></td>
+  <td class="hr_col8">&nbsp;50</td>
+  <td class="hr_col8">&nbsp;4</td>
+  <td class="hr_col8">2</td>
+  <td class="hr_col8">4</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">11.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Evian Thonon Gaillard</td>
+  <td class="hr_col2">6</td>
+  <td class="hr_col3">2</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">4</td>
+  <td class="hr_col6">&nbsp;9</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">18</td>
+  <td class="hr_col7">&nbsp;-9</td>
+  <td class="cislo" align="center">&nbsp;<strong>6</strong></td>
+  <td class="hr_col8">&nbsp;33.33</td>
+  <td class="hr_col8">&nbsp;6</td>
+  <td class="hr_col8">2</td>
+  <td class="hr_col8">6</td>
+</tr>
+<tr>
+  <td class="hr_col0">12.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Valenciennes FC</td>
+  <td class="hr_col2">12</td>
+  <td class="hr_col3">2</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">10</td>
+  <td class="hr_col6">&nbsp;8</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">37</td>
+  <td class="hr_col7" style="color:red">&nbsp;-29</td>
+  <td class="cislo" align="center">&nbsp;<strong>6</strong></td>
+  <td class="hr_col8">&nbsp;16.67</td>
+  <td class="hr_col8">&nbsp;12</td>
+  <td class="hr_col8">2</td>
+  <td class="hr_col8">12</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">13.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Footballeurs des colonies france</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;3</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">14.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">U.S. Citta de Yellowtown 1893 PL</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;3</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">15.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Eguipe de Elbe FC</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">1</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">16.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC Kobra Stochov</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">1</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">17.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FK kamikadze</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">1</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">18.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Livingston FC</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">0</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">19.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Replacement Predators</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">0</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">0</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;100</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">20.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">NSP Pasta</td>
+  <td class="hr_col2">2</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;4</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">3</td>
+  <td class="hr_col7">&nbsp;1</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;50</td>
+  <td class="hr_col8">&nbsp;2</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">2</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">21.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC Sparta Shefild</td>
+  <td class="hr_col2">3</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">2</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">4</td>
+  <td class="hr_col7">&nbsp;-2</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;33.33</td>
+  <td class="hr_col8">&nbsp;3</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">3</td>
+</tr>
+<tr>
+  <td class="hr_col0">22.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">New England Patriots</td>
+  <td class="hr_col2">5</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">4</td>
+  <td class="hr_col6">&nbsp;6</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">8</td>
+  <td class="hr_col7">&nbsp;-2</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;20</td>
+  <td class="hr_col8">&nbsp;5</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">5</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">23.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC COLA DOKSY</td>
+  <td class="hr_col2">5</td>
+  <td class="hr_col3">1</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">4</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">11</td>
+  <td class="hr_col7">&nbsp;-9</td>
+  <td class="cislo" align="center">&nbsp;<strong>3</strong></td>
+  <td class="hr_col8">&nbsp;20</td>
+  <td class="hr_col8">&nbsp;5</td>
+  <td class="hr_col8">1</td>
+  <td class="hr_col8">5</td>
+</tr>
+<tr>
+  <td class="hr_col0">24.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Ac Vainqueurs</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">3</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">25.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Charlton McAthletic</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">3</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">26.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Hungary</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">27.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">La Puerta Roi de singes</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">28.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Mušketýři CF</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">29.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Olympique Lyonnais</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">30.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Paris FC</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">31.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">SF Le Havre AC</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">2</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">32.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC St. Tropez</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;0</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">1</td>
+  <td class="hr_col7">&nbsp;-1</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">33.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Les Éléphants</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">4</td>
+  <td class="hr_col7">&nbsp;-2</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">34.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Le fabuleux destin dAmélie Poulain</td>
+  <td class="hr_col2">2</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">2</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">4</td>
+  <td class="hr_col7">&nbsp;-2</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;2</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">2</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">35.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Football Club de Versailles</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">4</td>
+  <td class="hr_col7">&nbsp;-3</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">36.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">FC Gueugnon 1er club de lessone</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;0</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">3</td>
+  <td class="hr_col7">&nbsp;-3</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">37.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">La Bastille Saint Germain FC</td>
+  <td class="hr_col2">2</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">2</td>
+  <td class="hr_col6">&nbsp;2</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">5</td>
+  <td class="hr_col7">&nbsp;-3</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;2</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">2</td>
+</tr>
+<tr>
+  <td class="hr_col0">38.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Wellinkton</td>
+  <td class="hr_col2">3</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">3</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">5</td>
+  <td class="hr_col7">&nbsp;-4</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;3</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">3</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">39.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">Footballeurs des colonies fran</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;0</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">5</td>
+  <td class="hr_col7">&nbsp;-5</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">40.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">MC AuMa Hýsly</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;1</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">7</td>
+  <td class="hr_col7">&nbsp;-6</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">41.</td>
+  <td class="hr_col9"><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+  <td class="tym">AC Sparta Shefild</td>
+  <td class="hr_col2">1</td>
+  <td class="hr_col3">0</td>
+  <td class="hr_col4">0</td>
+  <td class="hr_col5">1</td>
+  <td class="hr_col6">&nbsp;0</td>
+  <td class="hr_col6">:</td>
+  <td class="hr_col6">12</td>
+  <td class="hr_col7">&nbsp;-12</td>
+  <td class="cislo" align="center">&nbsp;<strong>0</strong></td>
+  <td class="hr_col8">&nbsp;0</td>
+  <td class="hr_col8">&nbsp;1</td>
+  <td class="hr_col8">0</td>
+  <td class="hr_col8">1</td>
+</tr>
+</table>
+<br><div class="male_pismo" align="center"><strong>Legenda:<strong> <em>Poz - pozice, Utk - počet utkání,	Vý - počet výher, Re - počet remíz,	Pr- počet proher, Roz - rozdíl ve skore, % - úspěšnost, Poč - počet učastí., W - počet celkových vítězství pohárů, F - počet finálových účastí v poháru.</em></div><br>
+<hr>
+<!-- nej rekordy jednotlivych sezon poharu -->
+<table class="tab_stats" align="center">
+  <caption><strong>Nej zápisy týmů v sezoně </strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>popis</strong></td>
+  <td><strong>hodnota</strong></td>
+  <td><strong>tým</strong></td>
+  <td><strong>sezona</strong></td>
+  <td><strong>země</strong></td>
+</tr>
+<tr>
+  <td>Nejvíce vstřelených branek</td>
+  <td class="cislo"><strong>12</strong></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_LOSC Lille Metropole.jpg" width="12" height="12"><a href="https://www.brejk.cz/index.php?p=info_tym&tym=LOSC Lille Metropole" target="_blank">LOSC Lille Metropole</a></td>
+  <td class="cislo">58</td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>Nejvíce obdržených branek</td>
+  <td class="cislo"><strong>12</strong></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_AC Sparta Shefild.jpg" width="12" height="12"><a href="https://www.brejk.cz/index.php?p=info_tym&tym=AC Sparta Shefild" target="_blank">AC Sparta Shefild</a></td>
+  <td class="cislo">58</td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.gif"></td>
+</tr>
+</table>
+<hr>
+<!-- Tabulka tymu dle medaili -->
+<table class="tab_stats" align="center">
+  <caption><strong>Tabulka týmů dle zisku medailí</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>Poz</strong></td>
+  <td class="tym"><strong>Jméno týmu</strong></td>
+  <td class="cislo"><strong>Zlato</strong></td>
+  <td class="cislo"><strong>Finále</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">1.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">La Vechia Signora</td>
+  <td class="hr_col2"><strong>24</strong></td>
+  <td class="hr_col2">34</td>
+</tr>
+<tr>
+  <td class="hr_col0">2.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">LOSC Lille Metropole...</td>
+  <td class="hr_col2"><strong>16</strong></td>
+  <td class="hr_col2">19</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">3.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Ac Vainqueurs Hradec...</td>
+  <td class="hr_col2"><strong>6</strong></td>
+  <td class="hr_col2">12</td>
+</tr>
+<tr>
+  <td class="hr_col0">4.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC Sázavan United</td>
+  <td class="hr_col2"><strong>4</strong></td>
+  <td class="hr_col2">10</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">5.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC Dawdlers Chambéry...</td>
+  <td class="hr_col2"><strong>4</strong></td>
+  <td class="hr_col2">4</td>
+</tr>
+<tr>
+  <td class="hr_col0">6.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Paris Saint Germain</td>
+  <td class="hr_col2"><strong>3</strong></td>
+  <td class="hr_col2">7</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">7.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC Bubákov Stochov</td>
+  <td class="hr_col2"><strong>3</strong></td>
+  <td class="hr_col2">5</td>
+</tr>
+<tr>
+  <td class="hr_col0">8.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Chattelreault</td>
+  <td class="hr_col2"><strong>3</strong></td>
+  <td class="hr_col2">4</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">9.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Valenciennes FC</td>
+  <td class="hr_col2"><strong>2</strong></td>
+  <td class="hr_col2">12</td>
+</tr>
+<tr>
+  <td class="hr_col0">10.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Evian Thonon Gaillar...</td>
+  <td class="hr_col2"><strong>2</strong></td>
+  <td class="hr_col2">6</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">11.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">F.C. Rouen de Michel...</td>
+  <td class="hr_col2"><strong>2</strong></td>
+  <td class="hr_col2">4</td>
+</tr>
+<tr>
+  <td class="hr_col0">12.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">AC Maroko</td>
+  <td class="hr_col2"><strong>2</strong></td>
+  <td class="hr_col2">3</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">13.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC COLA DOKSY</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">5</td>
+</tr>
+<tr>
+  <td class="hr_col0">14.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">New England Patriots...</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">5</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">15.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC Sparta Shefild</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">3</td>
+</tr>
+<tr>
+  <td class="hr_col0">16.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">NSP Pasta</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">2</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">17.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Eguipe de Elbe FC</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">18.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC Kobra Stochov</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">19.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FK kamikadze</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">20.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Footballeurs des col...</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">21.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Livingston FC</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">22.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Replacement Predator...</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">23.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">U.S. Citta de Yellow...</td>
+  <td class="hr_col2"><strong>1</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">24.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Wellinkton</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">3</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">25.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">La Bastille Saint Ge...</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">2</td>
+</tr>
+<tr>
+  <td class="hr_col0">26.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Le fabuleux destin d...</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">2</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">27.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">AC Sparta Shefild</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">28.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Ac Vainqueurs</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">29.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Charlton McAthletic</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">30.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC Gueugnon 1er club...</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">31.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">FC St. Tropez</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">32.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Football Club de Ver...</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">33.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Footballeurs des col...</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">34.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Hungary</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">35.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">La Puerta Roi de sin...</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">36.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Les Éléphants</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">37.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">MC AuMa Hýsly</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">38.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Mušketýři CF</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">39.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Olympique Lyonnais</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr>
+  <td class="hr_col0">40.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">Paris FC</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td class="hr_col0">41.</td>
+  <td class="tym"><img src="https://www.brejk.cz/images/flags/fr.gif">SF Le Havre AC</td>
+  <td class="hr_col2"><strong>0</strong></td>
+  <td class="hr_col2">1</td>
+</tr>
+</table>
+<hr>
+<br><hr><br>
+<table class="tab_stats" align="center">
+<tr>
+  <td>
+  Vygenerováno: @StatsCrawler 2025-10-14 11:55:34 AM
+ - <a href="https://www.brejk.cz/index.php?p=brejk_clanek&novinka=24390" target="_blank">Metodika statistik</a></td>
+</tr>
+</table>
+<br><br><br>
+</body>
+</html>
