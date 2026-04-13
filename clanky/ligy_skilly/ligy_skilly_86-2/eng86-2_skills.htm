@@ -1,0 +1,4645 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="windows-1250">
+<meta name="description" content="Brejk stats">
+<style>
+  html, body {border: 0px; margin: 0px; padding: 0px; background-color: white;; background-image: none;}
+  table {margin: 0px auto;}
+  a, a:visited, a:active {text-decoration: underline; color: light-blue;}
+  a:hover {text-decoration: none;	color: light-blue;}
+  caption {font: Verdana, sans-serif; color: #CE1124;}
+  .tym {text-align: left; width: 150px;}
+  .cislo {text-align: center;}
+  .tab_stats {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_stats_tymy {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .hlava_tab_stats_tr {border: 0px solid currentColor; border-collapse: collapse; background-color: #CE1124; color: white;}
+  .sudy_radek_tab_stats {border: 0px solid currentColor; border-collapse: collapse; background-color: #CCCCCC;}
+  .male_pismo {font: 7px Verdana, sans-serif;}
+  .mensi_pismo {font-size: 9px; font-family: Verdana, sans-serif;}
+  .tab_vysledek {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_sudy {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_middle {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_strelci {font: 9px Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .nadpis1 {font-family: Verdana, sans-serif; color: #CE1124;}
+  .hr_col3, .hr_col4, .hr_col5, .hr_col6, .hr_col7, .hr_col8, .hr_col9, .hr_col10, .hr_col11, .hr_col12, .hr_col13, .hr_col14, .hr_col15, .hr_col16, .hr_col17 { width: 20px; text-align: center; vertical - align: middle; }
+  .odstavec {font-size:14px; }
+  .tab_stats_teams {font: small lucida sans unicode,lucida grande,sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .table-heat { border-collapse: collapse; text-align: center; font-family: sans-serif; border: 2px solid black;}
+  .th-heat, .td-heat { border: 1px solid #999; width: 40px; height: 40px; }
+  .heat-0 { background-color: #ffffff; }
+  .heat-1 { background-color: #fff3b0; }
+  .heat-2 { background-color: #ffc107; }
+  .heat-3 { background-color: #ff9800; color: white; }
+  .heat-4 { background-color: #f44336; color: white; }
+  .heatmap - number { font - size: 0.85em; }
+</style>
+</head>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tables = document.querySelectorAll("table.tab_stats_tymy");
+
+    tables.forEach((table) => {
+        const headerRow = table.querySelector("tr.hlava_tab_stats_tr");
+        if (!headerRow) return;
+
+        const headers = headerRow.querySelectorAll("td");
+
+        const columnMap = [];
+        let realIndex = 0;
+        headers.forEach((header) => {
+            const span = parseInt(header.getAttribute("colspan") || "1");
+            columnMap.push(realIndex);
+            realIndex += span;
+
+            // Připravíme span pro šipku
+            const arrow = document.createElement("span");
+            arrow.className = "sort-arrow";
+            arrow.style.marginLeft = "4px";
+            header.appendChild(arrow);
+        });
+
+        headers.forEach((header, i) => {
+            header.style.cursor = "pointer";
+            header.addEventListener("click", () => {
+                sortTableByColumn(table, headers, columnMap[i], i);
+            });
+        });
+    });
+
+    function sortTableByColumn(table, headers, columnIndex, headerIndex) {
+        const rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)"));
+
+        const isNumeric = rows.every(row => {
+            const cellText = row.cells[columnIndex]?.innerText.trim();
+            return /^-?\d+(\.\d+)?%?$/.test(cellText);
+        });
+
+        const currentDirection = headerSortDirection(headers, headerIndex);
+        const multiplier = currentDirection === "asc" ? 1 : -1;
+
+        rows.sort((a, b) => {
+            let aText = a.cells[columnIndex]?.innerText.trim();
+            let bText = b.cells[columnIndex]?.innerText.trim();
+
+            if (isNumeric) {
+                aText = aText.replace("%", "").replace(",", ".");
+                bText = bText.replace("%", "").replace(",", ".");
+                return (parseFloat(aText) - parseFloat(bText)) * multiplier;
+            } else {
+                return aText.localeCompare(bText) * multiplier;
+            }
+        });
+
+        rows.forEach(row => table.appendChild(row));
+
+        // smažeme šipky u všech
+        headers.forEach(h => {
+            const arrow = h.querySelector(".sort-arrow");
+            if (arrow) arrow.textContent = "";
+            h.removeAttribute("data-sort");
+        });
+
+        // nastavíme šipku na aktuální
+        const header = headers[headerIndex];
+        header.setAttribute("data-sort", currentDirection);
+        const arrow = header.querySelector(".sort-arrow");
+        if (arrow) arrow.textContent = currentDirection === "asc" ? "^" : "ˇ";
+    }
+
+    function headerSortDirection(headers, headerIndex) {
+        const header = headers[headerIndex];
+        const current = header.getAttribute("data-sort");
+        return current === "asc" ? "desc" : "asc";
+    }
+});
+</script>
+<body>
+<h1 align="center" class="nadpis1" id="nahoru">eng86-2</h1>
+<div align="center" class="mensi_pismo">
+  <a href="#brankari">[brankáři]</a>
+  <a href="#obranci">[obránci]</a>
+  <a href="#zaloznici">[záložníci]</a>
+  <a href="#utocnici">[útočníci]</a>
+  <a href="#topskilly">[top skilly]</a>
+  <a href="#skillytymy">[skilly týmy]</a>
+  <a href="#top11vstop22">[top11 vs top22]</a>
+  <a href="#vektop22">[věk top22]</a>
+  <a href="#osaTymu">[osa týmu]</a>
+  <a href="#vek">[věk]</a>
+  <a href="#zkusenost">[zkušenost]</a>
+  <a href="#poctyhracu">[počty hráčů]</a>
+</div>
+<br>
+<div align="right"><a href="#nahoru" id="brankari" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top brankáři</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2612270" target="_blank">Stuart Milburn</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>L</td>
+  <td>486</td>
+  <td>51</td>
+  <td>63</td>
+  <td>57</td>
+  <td>417</td>
+  <td>63</td>
+  <td>48</td>
+  <td>53</td>
+  <td>224</td>
+  <td>0</td>
+  <td>2</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>37</td>
+  <td><strong>3384</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2609361" target="_blank">Patrice Rousell</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>LS</td>
+  <td>349</td>
+  <td>62</td>
+  <td>58</td>
+  <td>43</td>
+  <td>325</td>
+  <td>47</td>
+  <td>51</td>
+  <td>56</td>
+  <td>203</td>
+  <td>255</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>62</td>
+  <td>48</td>
+  <td><strong>3282</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2635690" target="_blank">Svatoslav Skuhravý</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/cz.png"></td>
+  <td>P</td>
+  <td>477</td>
+  <td>50</td>
+  <td>45</td>
+  <td>49</td>
+  <td>400</td>
+  <td>62</td>
+  <td>44</td>
+  <td>63</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>34</td>
+  <td><strong>3048</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2634534" target="_blank">Jeremy Kelsey</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>370</td>
+  <td>46</td>
+  <td>43</td>
+  <td>46</td>
+  <td>303</td>
+  <td>27</td>
+  <td>38</td>
+  <td>39</td>
+  <td>200</td>
+  <td>128</td>
+  <td>132</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>52</td>
+  <td><strong>2952</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620802" target="_blank">Darius Wanyama</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>P</td>
+  <td>322</td>
+  <td>33</td>
+  <td>48</td>
+  <td>32</td>
+  <td>361</td>
+  <td>30</td>
+  <td>33</td>
+  <td>40</td>
+  <td>347</td>
+  <td>27</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>17</td>
+  <td><strong>2891</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2621522" target="_blank">Soyombo Adebogun</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>372</td>
+  <td>60</td>
+  <td>49</td>
+  <td>56</td>
+  <td>308</td>
+  <td>53</td>
+  <td>55</td>
+  <td>43</td>
+  <td>200</td>
+  <td>117</td>
+  <td>20</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>51</td>
+  <td><strong>2862</strong></td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2631214" target="_blank">Michael Miles</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>P</td>
+  <td>304</td>
+  <td>28</td>
+  <td>31</td>
+  <td>30</td>
+  <td>319</td>
+  <td>30</td>
+  <td>39</td>
+  <td>43</td>
+  <td>251</td>
+  <td>184</td>
+  <td>184</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>15</td>
+  <td><strong>2848</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618658" target="_blank">Sol Winter</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>P</td>
+  <td>400</td>
+  <td>55</td>
+  <td>48</td>
+  <td>43</td>
+  <td>266</td>
+  <td>43</td>
+  <td>30</td>
+  <td>31</td>
+  <td>210</td>
+  <td>230</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>30</td>
+  <td><strong>2838</strong></td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630960" target="_blank">Jeremy Holding</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>L</td>
+  <td>396</td>
+  <td>39</td>
+  <td>28</td>
+  <td>47</td>
+  <td>397</td>
+  <td>37</td>
+  <td>45</td>
+  <td>36</td>
+  <td>97</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>47</td>
+  <td><strong>2818</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2609344" target="_blank">Juan Jose Hernández</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>366</td>
+  <td>48</td>
+  <td>58</td>
+  <td>54</td>
+  <td>296</td>
+  <td>50</td>
+  <td>42</td>
+  <td>44</td>
+  <td>122</td>
+  <td>111</td>
+  <td>211</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>37</td>
+  <td><strong>2770</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2624687" target="_blank">Carlo Irving</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>395</td>
+  <td>52</td>
+  <td>53</td>
+  <td>49</td>
+  <td>333</td>
+  <td>43</td>
+  <td>47</td>
+  <td>51</td>
+  <td>46</td>
+  <td>61</td>
+  <td>23</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>79</td>
+  <td><strong>2754</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602668" target="_blank">Mick Ferguson</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>445</td>
+  <td>33</td>
+  <td>30</td>
+  <td>35</td>
+  <td>288</td>
+  <td>34</td>
+  <td>38</td>
+  <td>46</td>
+  <td>83</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>36</td>
+  <td><strong>2665</strong></td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2642175" target="_blank">Obong Orelaja</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>352</td>
+  <td>56</td>
+  <td>49</td>
+  <td>54</td>
+  <td>301</td>
+  <td>42</td>
+  <td>45</td>
+  <td>56</td>
+  <td>148</td>
+  <td>144</td>
+  <td>101</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>11</td>
+  <td><strong>2628</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2649461" target="_blank">Jeremy Pickford</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>L</td>
+  <td>323</td>
+  <td>45</td>
+  <td>45</td>
+  <td>44</td>
+  <td>396</td>
+  <td>56</td>
+  <td>42</td>
+  <td>57</td>
+  <td>138</td>
+  <td>53</td>
+  <td>8</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>1</td>
+  <td><strong>2572</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2640180" target="_blank">Darius Dallas</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>350</td>
+  <td>45</td>
+  <td>34</td>
+  <td>33</td>
+  <td>301</td>
+  <td>47</td>
+  <td>28</td>
+  <td>44</td>
+  <td>200</td>
+  <td>61</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>20</td>
+  <td><strong>2561</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617877" target="_blank">Jack Akpom</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>S</td>
+  <td>474</td>
+  <td>44</td>
+  <td>43</td>
+  <td>33</td>
+  <td>234</td>
+  <td>47</td>
+  <td>27</td>
+  <td>41</td>
+  <td>44</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>44</td>
+  <td><strong>2552</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617921" target="_blank">Ross Bush</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>326</td>
+  <td>27</td>
+  <td>41</td>
+  <td>27</td>
+  <td>300</td>
+  <td>34</td>
+  <td>41</td>
+  <td>28</td>
+  <td>40</td>
+  <td>201</td>
+  <td>202</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>22</td>
+  <td><strong>2490</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2623103" target="_blank">Sylvan West</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>PS</td>
+  <td>414</td>
+  <td>48</td>
+  <td>43</td>
+  <td>63</td>
+  <td>271</td>
+  <td>42</td>
+  <td>46</td>
+  <td>57</td>
+  <td>44</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>23</td>
+  <td><strong>2412</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2611544" target="_blank">Colin Greenwood</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>U</td>
+  <td>300</td>
+  <td>43</td>
+  <td>44</td>
+  <td>56</td>
+  <td>302</td>
+  <td>63</td>
+  <td>57</td>
+  <td>52</td>
+  <td>65</td>
+  <td>136</td>
+  <td>135</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>21</td>
+  <td><strong>2360</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2616133" target="_blank">Dayton McGin</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/us.png"></td>
+  <td>S</td>
+  <td>339</td>
+  <td>58</td>
+  <td>49</td>
+  <td>50</td>
+  <td>256</td>
+  <td>54</td>
+  <td>52</td>
+  <td>56</td>
+  <td>44</td>
+  <td>152</td>
+  <td>141</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>12</td>
+  <td><strong>2300</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="obranci" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top obránci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2604076" target="_blank">Markus Hornschuh</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/de.png"></td>
+  <td>LS</td>
+  <td>56</td>
+  <td>450</td>
+  <td>43</td>
+  <td>53</td>
+  <td>433</td>
+  <td>52</td>
+  <td>207</td>
+  <td>57</td>
+  <td>181</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>63</td>
+  <td><strong>4320</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2605453" target="_blank">Malcolm Ellis</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>PS</td>
+  <td>32</td>
+  <td>449</td>
+  <td>32</td>
+  <td>42</td>
+  <td>416</td>
+  <td>236</td>
+  <td>173</td>
+  <td>32</td>
+  <td>189</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>35</td>
+  <td><strong>4278</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618897" target="_blank">Akinpelu Omarbemi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>58</td>
+  <td>400</td>
+  <td>56</td>
+  <td>57</td>
+  <td>397</td>
+  <td>175</td>
+  <td>152</td>
+  <td>63</td>
+  <td>233</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>59</td>
+  <td><strong>4196</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2601606" target="_blank">Justin Woodcock</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>32</td>
+  <td>422</td>
+  <td>33</td>
+  <td>28</td>
+  <td>353</td>
+  <td>36</td>
+  <td>240</td>
+  <td>41</td>
+  <td>256</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>64</td>
+  <td><strong>4168</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2604906" target="_blank">Wayne Taylor</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>U</td>
+  <td>27</td>
+  <td>451</td>
+  <td>34</td>
+  <td>34</td>
+  <td>404</td>
+  <td>164</td>
+  <td>157</td>
+  <td>27</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>253</td>
+  <td>0</td>
+  <td>36</td>
+  <td><strong>4168</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602843" target="_blank">Sol Keown</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>U</td>
+  <td>35</td>
+  <td>430</td>
+  <td>36</td>
+  <td>34</td>
+  <td>380</td>
+  <td>130</td>
+  <td>190</td>
+  <td>36</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>43</td>
+  <td><strong>4090</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2610121" target="_blank">Michael Rayleigh</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>52</td>
+  <td>425</td>
+  <td>47</td>
+  <td>51</td>
+  <td>400</td>
+  <td>155</td>
+  <td>175</td>
+  <td>42</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>20</td>
+  <td><strong>4052</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2623393" target="_blank">Connor Jobs</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>L</td>
+  <td>60</td>
+  <td>414</td>
+  <td>46</td>
+  <td>52</td>
+  <td>426</td>
+  <td>51</td>
+  <td>51</td>
+  <td>60</td>
+  <td>166</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>49</td>
+  <td><strong>3873</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2608432" target="_blank">Steven Warnock</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>PS</td>
+  <td>31</td>
+  <td>367</td>
+  <td>38</td>
+  <td>40</td>
+  <td>423</td>
+  <td>46</td>
+  <td>37</td>
+  <td>44</td>
+  <td>236</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>46</td>
+  <td><strong>3809</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2616865" target="_blank">Stewart Little</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>S</td>
+  <td>44</td>
+  <td>490</td>
+  <td>30</td>
+  <td>48</td>
+  <td>366</td>
+  <td>31</td>
+  <td>109</td>
+  <td>48</td>
+  <td>104</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>28</td>
+  <td><strong>3768</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2615399" target="_blank">Ray Ramsey</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>S</td>
+  <td>53</td>
+  <td>361</td>
+  <td>43</td>
+  <td>59</td>
+  <td>350</td>
+  <td>102</td>
+  <td>150</td>
+  <td>58</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>47</td>
+  <td><strong>3744</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602374" target="_blank">Glen Christie-Davies</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>U</td>
+  <td>29</td>
+  <td>379</td>
+  <td>31</td>
+  <td>39</td>
+  <td>344</td>
+  <td>35</td>
+  <td>204</td>
+  <td>32</td>
+  <td>217</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>29</td>
+  <td><strong>3730</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2609300" target="_blank">Michael Jackson</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>P</td>
+  <td>62</td>
+  <td>425</td>
+  <td>42</td>
+  <td>50</td>
+  <td>332</td>
+  <td>113</td>
+  <td>153</td>
+  <td>55</td>
+  <td>165</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>23</td>
+  <td><strong>3726</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2612681" target="_blank">Ian Birchall</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>P</td>
+  <td>53</td>
+  <td>425</td>
+  <td>62</td>
+  <td>48</td>
+  <td>326</td>
+  <td>115</td>
+  <td>155</td>
+  <td>60</td>
+  <td>163</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>21</td>
+  <td><strong>3708</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2619584" target="_blank">Luis Ignacio Vilchis</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/mx.png"></td>
+  <td>S</td>
+  <td>63</td>
+  <td>364</td>
+  <td>62</td>
+  <td>43</td>
+  <td>335</td>
+  <td>56</td>
+  <td>245</td>
+  <td>45</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>26</td>
+  <td><strong>3707</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2623311" target="_blank">Evaristo Soria</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ur.png"></td>
+  <td>PS</td>
+  <td>45</td>
+  <td>400</td>
+  <td>41</td>
+  <td>46</td>
+  <td>343</td>
+  <td>29</td>
+  <td>200</td>
+  <td>40</td>
+  <td>140</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>44</td>
+  <td><strong>3692</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2588398" target="_blank">Rio Hinshaw</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>S</td>
+  <td>14</td>
+  <td>413</td>
+  <td>63</td>
+  <td>68</td>
+  <td>393</td>
+  <td>27</td>
+  <td>109</td>
+  <td>24</td>
+  <td>171</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>7</td>
+  <td><strong>3640</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2625868" target="_blank">Henry Hansford</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>S</td>
+  <td>44</td>
+  <td>420</td>
+  <td>60</td>
+  <td>53</td>
+  <td>365</td>
+  <td>63</td>
+  <td>101</td>
+  <td>61</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>42</td>
+  <td><strong>3636</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2626004" target="_blank">Wes Kofolovicz</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>PS</td>
+  <td>44</td>
+  <td>401</td>
+  <td>42</td>
+  <td>48</td>
+  <td>343</td>
+  <td>100</td>
+  <td>156</td>
+  <td>49</td>
+  <td>201</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>204</td>
+  <td>0</td>
+  <td>21</td>
+  <td><strong>3611</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2633646" target="_blank">Ledley Ireland</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>U</td>
+  <td>29</td>
+  <td>422</td>
+  <td>37</td>
+  <td>31</td>
+  <td>400</td>
+  <td>49</td>
+  <td>106</td>
+  <td>44</td>
+  <td>110</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>5</td>
+  <td><strong>3596</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="zaloznici" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top záložníci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2601734" target="_blank">Ayodeji Oguchi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>S</td>
+  <td>55</td>
+  <td>400</td>
+  <td>401</td>
+  <td>45</td>
+  <td>357</td>
+  <td>100</td>
+  <td>161</td>
+  <td>56</td>
+  <td>224</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>46</td>
+  <td><strong>4982</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2604142" target="_blank">Heindrich Ivanschitz</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/de.png"></td>
+  <td>P</td>
+  <td>44</td>
+  <td>361</td>
+  <td>400</td>
+  <td>47</td>
+  <td>400</td>
+  <td>49</td>
+  <td>176</td>
+  <td>61</td>
+  <td>208</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>46</td>
+  <td><strong>4918</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602202" target="_blank">Stanislav Slovák</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/sk.png"></td>
+  <td>U</td>
+  <td>51</td>
+  <td>380</td>
+  <td>385</td>
+  <td>55</td>
+  <td>255</td>
+  <td>46</td>
+  <td>150</td>
+  <td>107</td>
+  <td>250</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>253</td>
+  <td>0</td>
+  <td>52</td>
+  <td><strong>4678</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602702" target="_blank">Francesco Jafri</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>U</td>
+  <td>37</td>
+  <td>301</td>
+  <td>335</td>
+  <td>100</td>
+  <td>343</td>
+  <td>87</td>
+  <td>151</td>
+  <td>43</td>
+  <td>207</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>177</td>
+  <td>32</td>
+  <td><strong>4518</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2601928" target="_blank">Hanno Oppenheimer</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/de.png"></td>
+  <td>U</td>
+  <td>60</td>
+  <td>359</td>
+  <td>346</td>
+  <td>48</td>
+  <td>333</td>
+  <td>51</td>
+  <td>173</td>
+  <td>63</td>
+  <td>201</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>28</td>
+  <td><strong>4496</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2622236" target="_blank">Unwanaabasi Asechemie</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>S</td>
+  <td>57</td>
+  <td>348</td>
+  <td>343</td>
+  <td>61</td>
+  <td>300</td>
+  <td>119</td>
+  <td>119</td>
+  <td>44</td>
+  <td>250</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>39</td>
+  <td><strong>4488</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2605137" target="_blank">Hanz Rehmer</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/de.png"></td>
+  <td>L</td>
+  <td>60</td>
+  <td>347</td>
+  <td>315</td>
+  <td>63</td>
+  <td>353</td>
+  <td>52</td>
+  <td>169</td>
+  <td>49</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>43</td>
+  <td><strong>4462</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2603007" target="_blank">Oscar Carlosino</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ur.png"></td>
+  <td>PS</td>
+  <td>37</td>
+  <td>335</td>
+  <td>340</td>
+  <td>105</td>
+  <td>340</td>
+  <td>75</td>
+  <td>86</td>
+  <td>47</td>
+  <td>169</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>71</td>
+  <td><strong>4438</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2623128" target="_blank">Clint van der Gouw</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/nl.png"></td>
+  <td>LS</td>
+  <td>46</td>
+  <td>368</td>
+  <td>314</td>
+  <td>47</td>
+  <td>316</td>
+  <td>42</td>
+  <td>120</td>
+  <td>83</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>37</td>
+  <td><strong>4350</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617327" target="_blank">Martin Brewitt</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>S</td>
+  <td>43</td>
+  <td>352</td>
+  <td>350</td>
+  <td>46</td>
+  <td>338</td>
+  <td>28</td>
+  <td>152</td>
+  <td>42</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>202</td>
+  <td>0</td>
+  <td>30</td>
+  <td><strong>4297</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2605872" target="_blank">Oleg Studený</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/cz.png"></td>
+  <td>S</td>
+  <td>28</td>
+  <td>323</td>
+  <td>324</td>
+  <td>33</td>
+  <td>372</td>
+  <td>44</td>
+  <td>156</td>
+  <td>40</td>
+  <td>89</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>39</td>
+  <td><strong>4177</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602777" target="_blank">Wes Mighten</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>P</td>
+  <td>37</td>
+  <td>349</td>
+  <td>360</td>
+  <td>27</td>
+  <td>333</td>
+  <td>34</td>
+  <td>55</td>
+  <td>45</td>
+  <td>154</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>24</td>
+  <td><strong>4176</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620661" target="_blank">Pierre Pavard</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>U</td>
+  <td>51</td>
+  <td>300</td>
+  <td>297</td>
+  <td>46</td>
+  <td>401</td>
+  <td>55</td>
+  <td>48</td>
+  <td>43</td>
+  <td>213</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>208</td>
+  <td>0</td>
+  <td>55</td>
+  <td><strong>4152</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620358" target="_blank">Wouter Seuntjens</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/nl.png"></td>
+  <td>L</td>
+  <td>50</td>
+  <td>321</td>
+  <td>303</td>
+  <td>42</td>
+  <td>302</td>
+  <td>110</td>
+  <td>151</td>
+  <td>75</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>253</td>
+  <td>0</td>
+  <td>13</td>
+  <td><strong>4144</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2604516" target="_blank">Clayton Knott</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>L</td>
+  <td>39</td>
+  <td>316</td>
+  <td>334</td>
+  <td>31</td>
+  <td>338</td>
+  <td>28</td>
+  <td>175</td>
+  <td>32</td>
+  <td>139</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>22</td>
+  <td><strong>4136</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2614231" target="_blank">Joe Lush</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>U</td>
+  <td>53</td>
+  <td>332</td>
+  <td>332</td>
+  <td>45</td>
+  <td>326</td>
+  <td>53</td>
+  <td>101</td>
+  <td>59</td>
+  <td>124</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>27</td>
+  <td><strong>4086</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2625401" target="_blank">Ermanno Stellini</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/it.png"></td>
+  <td>P</td>
+  <td>60</td>
+  <td>301</td>
+  <td>336</td>
+  <td>45</td>
+  <td>421</td>
+  <td>62</td>
+  <td>45</td>
+  <td>50</td>
+  <td>65</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>0</td>
+  <td>38</td>
+  <td><strong>4075</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2623540" target="_blank">Danny Coppinger</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>59</td>
+  <td>301</td>
+  <td>304</td>
+  <td>42</td>
+  <td>291</td>
+  <td>57</td>
+  <td>202</td>
+  <td>43</td>
+  <td>155</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>39</td>
+  <td><strong>4070</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2613697" target="_blank">Stuart Lowndes</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>59</td>
+  <td>300</td>
+  <td>325</td>
+  <td>52</td>
+  <td>300</td>
+  <td>57</td>
+  <td>150</td>
+  <td>43</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>201</td>
+  <td>0</td>
+  <td>28</td>
+  <td><strong>3990</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2614030" target="_blank">Robbie O´Neill</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>46</td>
+  <td>300</td>
+  <td>257</td>
+  <td>54</td>
+  <td>305</td>
+  <td>61</td>
+  <td>46</td>
+  <td>58</td>
+  <td>261</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>42</td>
+  <td><strong>3974</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="utocnici" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top útočníci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2608858" target="_blank">Shay Pickering</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>52</td>
+  <td>61</td>
+  <td>370</td>
+  <td>350</td>
+  <td>353</td>
+  <td>56</td>
+  <td>150</td>
+  <td>51</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>250</td>
+  <td>0</td>
+  <td>65</td>
+  <td><strong>4508</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602370" target="_blank">Luis Aladino</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ur.png"></td>
+  <td>LS</td>
+  <td>45</td>
+  <td>58</td>
+  <td>401</td>
+  <td>359</td>
+  <td>320</td>
+  <td>150</td>
+  <td>55</td>
+  <td>37</td>
+  <td>130</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>60</td>
+  <td><strong>4385</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2605982" target="_blank">Daniel Pinilla Sanchez</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/es.png"></td>
+  <td>LS</td>
+  <td>54</td>
+  <td>59</td>
+  <td>361</td>
+  <td>296</td>
+  <td>354</td>
+  <td>109</td>
+  <td>192</td>
+  <td>48</td>
+  <td>208</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>18</td>
+  <td><strong>4274</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617817" target="_blank">Patrick Fletcher</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/us.png"></td>
+  <td>U</td>
+  <td>47</td>
+  <td>52</td>
+  <td>356</td>
+  <td>336</td>
+  <td>328</td>
+  <td>208</td>
+  <td>59</td>
+  <td>50</td>
+  <td>214</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>252</td>
+  <td>0</td>
+  <td>27</td>
+  <td><strong>4252</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2601766" target="_blank">Kieran Maynard</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>P</td>
+  <td>29</td>
+  <td>59</td>
+  <td>352</td>
+  <td>350</td>
+  <td>351</td>
+  <td>67</td>
+  <td>105</td>
+  <td>45</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>60</td>
+  <td><strong>4236</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2623406" target="_blank">Alfonso Zagal</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>50</td>
+  <td>58</td>
+  <td>377</td>
+  <td>348</td>
+  <td>308</td>
+  <td>62</td>
+  <td>150</td>
+  <td>43</td>
+  <td>109</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>6</td>
+  <td>30</td>
+  <td><strong>4159</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2608901" target="_blank">Ian Hayes</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>43</td>
+  <td>61</td>
+  <td>415</td>
+  <td>404</td>
+  <td>120</td>
+  <td>44</td>
+  <td>90</td>
+  <td>61</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>48</td>
+  <td><strong>4043</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620082" target="_blank">Joffrey Villeneuve</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>PS</td>
+  <td>54</td>
+  <td>48</td>
+  <td>326</td>
+  <td>327</td>
+  <td>326</td>
+  <td>54</td>
+  <td>77</td>
+  <td>48</td>
+  <td>212</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>205</td>
+  <td>0</td>
+  <td>24</td>
+  <td><strong>3870</strong></td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2628979" target="_blank">Alan Sones</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>43</td>
+  <td>62</td>
+  <td>303</td>
+  <td>301</td>
+  <td>331</td>
+  <td>55</td>
+  <td>63</td>
+  <td>43</td>
+  <td>58</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>87</td>
+  <td><strong>3862</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2632671" target="_blank">Wes Caulker</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>PS</td>
+  <td>46</td>
+  <td>35</td>
+  <td>419</td>
+  <td>291</td>
+  <td>349</td>
+  <td>42</td>
+  <td>74</td>
+  <td>45</td>
+  <td>111</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>69</td>
+  <td>0</td>
+  <td>79</td>
+  <td><strong>3810</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2607307" target="_blank">Joe Guy</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>PS</td>
+  <td>48</td>
+  <td>33</td>
+  <td>336</td>
+  <td>333</td>
+  <td>323</td>
+  <td>34</td>
+  <td>47</td>
+  <td>62</td>
+  <td>96</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>27</td>
+  <td><strong>3808</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2616923" target="_blank">Jaroslav Vydarený</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/sk.png"></td>
+  <td>L</td>
+  <td>54</td>
+  <td>38</td>
+  <td>321</td>
+  <td>320</td>
+  <td>335</td>
+  <td>100</td>
+  <td>69</td>
+  <td>38</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>11</td>
+  <td><strong>3793</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2604142" target="_blank">Heindrich Ivanschitz</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/de.png"></td>
+  <td>P</td>
+  <td>44</td>
+  <td>361</td>
+  <td>400</td>
+  <td>47</td>
+  <td>400</td>
+  <td>49</td>
+  <td>176</td>
+  <td>61</td>
+  <td>208</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>46</td>
+  <td><strong>3788</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630275" target="_blank">Mark Grabban</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>37</td>
+  <td>39</td>
+  <td>342</td>
+  <td>326</td>
+  <td>276</td>
+  <td>45</td>
+  <td>40</td>
+  <td>30</td>
+  <td>175</td>
+  <td>0</td>
+  <td>0</td>
+  <td>105</td>
+  <td>0</td>
+  <td>201</td>
+  <td>0</td>
+  <td>33</td>
+  <td><strong>3748</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2601734" target="_blank">Ayodeji Oguchi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>S</td>
+  <td>55</td>
+  <td>400</td>
+  <td>401</td>
+  <td>45</td>
+  <td>357</td>
+  <td>100</td>
+  <td>161</td>
+  <td>56</td>
+  <td>224</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>46</td>
+  <td><strong>3727</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2602702" target="_blank">Francesco Jafri</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>U</td>
+  <td>37</td>
+  <td>301</td>
+  <td>335</td>
+  <td>100</td>
+  <td>343</td>
+  <td>87</td>
+  <td>151</td>
+  <td>43</td>
+  <td>207</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>177</td>
+  <td>32</td>
+  <td><strong>3719</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617650" target="_blank">Wendel Cresceros de Mattos</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/br.png"></td>
+  <td>S</td>
+  <td>46</td>
+  <td>50</td>
+  <td>301</td>
+  <td>328</td>
+  <td>256</td>
+  <td>58</td>
+  <td>200</td>
+  <td>39</td>
+  <td>50</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>28</td>
+  <td><strong>3710</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2628621" target="_blank">Denis Calvert-Lewin</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>S</td>
+  <td>52</td>
+  <td>42</td>
+  <td>300</td>
+  <td>300</td>
+  <td>304</td>
+  <td>43</td>
+  <td>130</td>
+  <td>63</td>
+  <td>54</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>29</td>
+  <td><strong>3632</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630740" target="_blank">Gen Hyun-Beom</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/kr.png"></td>
+  <td>U</td>
+  <td>37</td>
+  <td>45</td>
+  <td>301</td>
+  <td>304</td>
+  <td>281</td>
+  <td>57</td>
+  <td>100</td>
+  <td>38</td>
+  <td>159</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>253</td>
+  <td>0</td>
+  <td>9</td>
+  <td><strong>3632</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2614305" target="_blank">Trevor Jinks</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>LS</td>
+  <td>59</td>
+  <td>50</td>
+  <td>383</td>
+  <td>219</td>
+  <td>223</td>
+  <td>51</td>
+  <td>96</td>
+  <td>48</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>31</td>
+  <td><strong>3620</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="topskilly" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Hráči s top skilly</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>skill</strong></td>
+  <td><strong>hodnota</strong></td>
+  <td><strong></strong></td>
+  <td><strong>jméno hráče</strong></td>
+  <td><strong>tým</strong></td>
+  <td><strong>věk</strong></td>
+</tr>
+<tr>
+  <td> <strong>G</strong>olman</td>
+  <td>486</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2612270&tym=78424" target="_blank">Stuart Milburn</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td>29</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>O</strong>brana</td>
+  <td>500</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2608811&tym=653" target="_blank">Henry Stokes</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td>29</td>
+</tr>
+<tr>
+  <td> </td>
+  <td>500</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2612496&tym=653" target="_blank">Ryan Hathaway</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td>29</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> </td>
+  <td>500</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2615801&tym=653" target="_blank">Denis McEvilly</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td>28</td>
+</tr>
+<tr>
+  <td> <strong>U</strong>tok</td>
+  <td>447</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2622440&tym=653" target="_blank">Carlo Foster</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td>27</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>S</strong>třela</td>
+  <td>405</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2624771&tym=78424" target="_blank">Jamie Appleby</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td>27</td>
+</tr>
+<tr>
+  <td> <strong>T</strong>echnika</td>
+  <td>433</td>
+  <td><img src="https://www.brejk.cz/images/flags/de.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2604076&tym=78424" target="_blank">Markus Hornschuh</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td>30</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>H</strong>lavičkování</td>
+  <td>236</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2605453&tym=78424" target="_blank">Malcolm Ellis</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td>30</td>
+</tr>
+<tr>
+  <td> <strong>A</strong>gresivita</td>
+  <td>245</td>
+  <td><img src="https://www.brejk.cz/images/flags/mx.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2619584&tym=75570" target="_blank">Luis Ignacio Vilchis</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td>28</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>P</strong>řihrávání</td>
+  <td>350</td>
+  <td><img src="https://www.brejk.cz/images/flags/es.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2614980&tym=78424" target="_blank">Xavi Redondo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td>29</td>
+</tr>
+<tr>
+  <td> <strong>K</strong>ondice</td>
+  <td>347</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620802&tym=76511" target="_blank">Darius Wanyama</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td>28</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>Zk</strong>ušenost max</td>
+  <td>116</td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2608899&tym=76511" target="_blank">Alan Draper</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td>29</td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 22 hráčů (70 % nej 11ka [4-4-2] - 30 % náhradníci [4-4-2])</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>35093</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>34001</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>33957</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>31727</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>31655</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>31410</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>30866</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>30659</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>30588</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>30368</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>30018</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>29080</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>27095</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>26630</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>9963</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>9597</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>2756</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>2688</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>2456</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>2414</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>2377</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>2356</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>2289</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>2231</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>2196</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>2167</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>2152</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>2080</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>1946</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>1860</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>662</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>636</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>12468</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>12404</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>12248</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>12060</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>11515</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>11422</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>11316</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>10896</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>10859</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>10434</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>9970</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>9939</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>8653</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>5403</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>3227</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>3094</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>13537</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>13451</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>13439</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>13135</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>12674</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>12077</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>11869</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>11696</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>11637</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>11633</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>11574</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>11531</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>11145</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>10171</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>4324</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>4219</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>6893</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>6573</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>6354</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>6327</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>6311</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>5829</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>5726</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>5660</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>5620</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>5515</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>5364</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>5314</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>5299</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>5240</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>1750</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>1648</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><i>Skilly hráčů vždy násobeny koeficientem věku: do 24 let včetně *1; 25 let * 0,97; 26 let * 0,94; 27 let * 0,9; 28 let a výše * 0,8 </i>
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 11 nej hráčů [4-4-2]</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>43395</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>42814</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>42417</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>41432</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>40910</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>40151</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>39922</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>38898</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>38207</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>37557</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>36903</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>34709</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>33286</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>32415</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>5789</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>5478</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>3384</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>3282</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>3048</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>2952</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>2891</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>2848</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>2818</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>2754</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>2628</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>2572</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>2552</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>2490</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>2296</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>2056</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>659</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>625</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>16856</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>15100</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>14729</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>14429</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>14270</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>14059</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>14022</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>14007</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>13990</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>13596</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>13584</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>11877</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>11162</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>7622</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>3306</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>3169</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>17852</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>17020</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>16675</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>16235</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>15923</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>15702</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>15692</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>15590</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>15011</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>14037</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>13560</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>13255</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>12310</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>12236</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>8128</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>8098</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>8062</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>7993</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>7949</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>7791</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>7658</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>7342</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>7226</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>7172</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>6872</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>6817</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>6471</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>6465</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>1824</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>1684</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="top11vstop22" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Týmy - rozdíl Top 11 vs. Top 22 (vliv lavičky)</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>Top 11</strong></td>
+  <td><strong>Top 22</strong></td>
+  <td><strong>Rozdíl</strong></td>
+  <td><strong>Poměr</strong></td>
+  <td><strong>P11</strong></td>
+  <td><strong>P22</strong></td>
+  <td><strong>Změna</strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>43395</td>
+  <td>30368</td>
+  <td>-13027</td>
+  <td>0.700</td>
+  <td>1.</td>
+  <td>10.</td>
+  <td>+9</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>42814</td>
+  <td>31655</td>
+  <td>-11159</td>
+  <td>0.739</td>
+  <td>2.</td>
+  <td>5.</td>
+  <td>+3</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>42417</td>
+  <td>30018</td>
+  <td>-12399</td>
+  <td>0.708</td>
+  <td>3.</td>
+  <td>11.</td>
+  <td>+8</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>41432</td>
+  <td>31727</td>
+  <td>-9705</td>
+  <td>0.766</td>
+  <td>4.</td>
+  <td>4.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>40910</td>
+  <td>30659</td>
+  <td>-10251</td>
+  <td>0.749</td>
+  <td>5.</td>
+  <td>8.</td>
+  <td>+3</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>40151</td>
+  <td>33957</td>
+  <td>-6194</td>
+  <td>0.846</td>
+  <td>6.</td>
+  <td>3.</td>
+  <td>-3</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>39922</td>
+  <td>35093</td>
+  <td>-4829</td>
+  <td>0.879</td>
+  <td>7.</td>
+  <td>1.</td>
+  <td>-6</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>38898</td>
+  <td>34001</td>
+  <td>-4897</td>
+  <td>0.874</td>
+  <td>8.</td>
+  <td>2.</td>
+  <td>-6</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>38207</td>
+  <td>30588</td>
+  <td>-7619</td>
+  <td>0.801</td>
+  <td>9.</td>
+  <td>9.</td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>37557</td>
+  <td>31410</td>
+  <td>-6147</td>
+  <td>0.836</td>
+  <td>10.</td>
+  <td>6.</td>
+  <td>-4</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>36903</td>
+  <td>30866</td>
+  <td>-6037</td>
+  <td>0.836</td>
+  <td>11.</td>
+  <td>7.</td>
+  <td>-4</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>34709</td>
+  <td>27095</td>
+  <td>-7614</td>
+  <td>0.781</td>
+  <td>12.</td>
+  <td>13.</td>
+  <td>+1</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>33286</td>
+  <td>29080</td>
+  <td>-4206</td>
+  <td>0.874</td>
+  <td>13.</td>
+  <td>12.</td>
+  <td>-1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>32415</td>
+  <td>26630</td>
+  <td>-5785</td>
+  <td>0.822</td>
+  <td>14.</td>
+  <td>14.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>5789</td>
+  <td>9963</td>
+  <td>+4174</td>
+  <td>1.721</td>
+  <td>15.</td>
+  <td>15.</td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>5478</td>
+  <td>9597</td>
+  <td>+4119</td>
+  <td>1.752</td>
+  <td>16.</td>
+  <td>16.</td>
+  <td>0</td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Top 11</strong> představuje sílu nejlepší sestavy [4-4-2] bez zohlednění věku.
+<br><strong>Top 22</strong> představuje sílu kádru při modelu 70 % nej 11ka + 30 % náhradníci [4-4-2], včetně věkové redukce.
+<br><strong>Rozdíl</strong> = Top 22 - Top 11. Ukazuje, kolik síly přidá šířka kádru.
+<br><strong>Poměr</strong> = Top 22 / Top 11. Vyjadřuje, jak moc tým těží ze své lavičky – čím vyšší, tím vyrovnanější tým.
+<br><strong>Změna</strong> vyjadřuje posun pořadí mezi tabulkou Top 11 a Top 22. Záporná hodnota znamená zlepšení po započtení šířky kádru.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="vektop22" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Průměrný věk TOP 22</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>&#8960; Věk</strong></td>
+  <td><strong>&#8960; G </strong></td>
+  <td><strong>&#8960; O </strong></td>
+  <td><strong>&#8960; Z </strong></td>
+  <td><strong>&#8960; U </strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td><strong>20.64</strong></td>
+  <td>23.00</td>
+  <td>20.25</td>
+  <td>20.25</td>
+  <td>21.00</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td><strong>21.82</strong></td>
+  <td>21.00</td>
+  <td>22.00</td>
+  <td>21.63</td>
+  <td>22.25</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td><strong>26.23</strong></td>
+  <td>25.00</td>
+  <td>26.00</td>
+  <td>26.38</td>
+  <td>27.00</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td><strong>26.45</strong></td>
+  <td>25.00</td>
+  <td>26.50</td>
+  <td>26.88</td>
+  <td>26.25</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td><strong>26.55</strong></td>
+  <td>26.00</td>
+  <td>26.25</td>
+  <td>27.13</td>
+  <td>26.25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td><strong>26.59</strong></td>
+  <td>27.50</td>
+  <td>26.25</td>
+  <td>26.88</td>
+  <td>26.25</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td><strong>26.77</strong></td>
+  <td>26.50</td>
+  <td>26.38</td>
+  <td>26.38</td>
+  <td>28.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td><strong>27.00</strong></td>
+  <td>28.00</td>
+  <td>27.13</td>
+  <td>26.63</td>
+  <td>27.00</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td><strong>27.09</strong></td>
+  <td>28.00</td>
+  <td>26.50</td>
+  <td>27.38</td>
+  <td>27.25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td><strong>27.73</strong></td>
+  <td>25.50</td>
+  <td>27.75</td>
+  <td>28.25</td>
+  <td>27.75</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td><strong>27.86</strong></td>
+  <td>28.00</td>
+  <td>27.50</td>
+  <td>27.88</td>
+  <td>28.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td><strong>28.09</strong></td>
+  <td>28.50</td>
+  <td>28.13</td>
+  <td>28.00</td>
+  <td>28.00</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td><strong>28.41</strong></td>
+  <td>26.00</td>
+  <td>28.38</td>
+  <td>29.00</td>
+  <td>28.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td><strong>28.77</strong></td>
+  <td>27.50</td>
+  <td>28.75</td>
+  <td>28.75</td>
+  <td>29.50</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td><strong>29.27</strong></td>
+  <td>29.50</td>
+  <td>29.38</td>
+  <td>29.50</td>
+  <td>28.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td><strong>29.41</strong></td>
+  <td>28.50</td>
+  <td>29.25</td>
+  <td>29.50</td>
+  <td>30.00</td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Průměrný věk TOP 22</strong> vychází z výběru 2 brankářů, 8 obránců, 8 záložníků a 4 útočníků dle předpočítaných skillů.
+<br><strong>Věk</strong> představuje průměrný věk celé této skupiny.
+<br>Sloupce <strong>G</strong>, <strong>O</strong>, <strong>Z</strong> a <strong>U</strong> zobrazují průměrný věk vybraných hráčů na jednotlivých postech.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="osaTymu" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Síla osy týmu</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>nej G</strong></td>
+  <td><strong>nej O</strong></td>
+  <td><strong>nej Z</strong></td>
+  <td><strong>nej U</strong></td>
+  <td><strong>Osa týmu</strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>3282</td>
+  <td>4168</td>
+  <td>4518</td>
+  <td>4274</td>
+  <td><strong>16242</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>3384</td>
+  <td>4320</td>
+  <td>4678</td>
+  <td>3444</td>
+  <td><strong>15826</strong></td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>2848</td>
+  <td>3936</td>
+  <td>4982</td>
+  <td>3870</td>
+  <td><strong>15636</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>2952</td>
+  <td>3744</td>
+  <td>4297</td>
+  <td>4508</td>
+  <td><strong>15501</strong></td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>2818</td>
+  <td>4196</td>
+  <td>4194</td>
+  <td>4043</td>
+  <td><strong>15251</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>2891</td>
+  <td>3873</td>
+  <td>3824</td>
+  <td>4159</td>
+  <td><strong>14747</strong></td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>2572</td>
+  <td>3542</td>
+  <td>4350</td>
+  <td>4252</td>
+  <td><strong>14716</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>2296</td>
+  <td>3576</td>
+  <td>4438</td>
+  <td>4385</td>
+  <td><strong>14695</strong></td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>2754</td>
+  <td>3439</td>
+  <td>4152</td>
+  <td>4236</td>
+  <td><strong>14581</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>2490</td>
+  <td>3768</td>
+  <td>4070</td>
+  <td>3710</td>
+  <td><strong>14038</strong></td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>3048</td>
+  <td>3636</td>
+  <td>3828</td>
+  <td>3462</td>
+  <td><strong>13974</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>2056</td>
+  <td>3708</td>
+  <td>3755</td>
+  <td>3748</td>
+  <td><strong>13267</strong></td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>2628</td>
+  <td>3218</td>
+  <td>3242</td>
+  <td>3526</td>
+  <td><strong>12614</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>2552</td>
+  <td>2990</td>
+  <td>3359</td>
+  <td>3519</td>
+  <td><strong>12420</strong></td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>664</td>
+  <td>855</td>
+  <td>1130</td>
+  <td>954</td>
+  <td><strong>3603</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>638</td>
+  <td>802</td>
+  <td>1107</td>
+  <td>894</td>
+  <td><strong>3441</strong></td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Síla osy týmu</strong> představuje součet nejlepších hráčů na klíčových postech.
+<br>Do osy se započítává nejlepší <strong>brankář</strong>, <strong>obránce</strong>, <strong>záložník</strong> a <strong>útočník</strong> daného týmu.
+<br><strong>Osa</strong> ukazuje sílu základní kostry týmu.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 22 hráčů (60 % nej 11ka [4-4-2] - 40 % náhradníci [4-4-2]) - Dle Huntize</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>38795</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>37597</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>36716</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>36651</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>36383</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>36192</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>36061</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>35762</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>34615</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>34315</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>33972</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>30283</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>29578</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>29409</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>9870</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>9518</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>2845</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>2836</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>2769</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>2704</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>2649</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>2583</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>2546</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>2412</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>2317</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>2316</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>2309</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>2221</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>2196</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>1962</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>662</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>635</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>14417</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>13300</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>13198</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>12967</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>12868</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>12801</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>12736</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>12382</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>12196</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>12053</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>11762</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>9874</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>9805</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>6077</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>3201</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>3069</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>15490</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>14912</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>14851</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>14515</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>14421</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>14358</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>14099</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>14072</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>13872</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>13194</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>13018</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>12973</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>11646</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>11388</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>4282</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>4177</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank">Seatrend</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16" height="16"></td>
+  <td>7279</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank">Buckley F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16" height="16"></td>
+  <td>7258</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank">Viktoria Everton</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16" height="16"></td>
+  <td>6980</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank">Colchester Knights</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16" height="16"></td>
+  <td>6900</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank">Nottingham Forest FC...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16" height="16"></td>
+  <td>6838</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank">YNWA TEAM</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16" height="16"></td>
+  <td>6774</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank">Kluci z ulice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16" height="16"></td>
+  <td>6763</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank">FC Macclesfield Town...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16" height="16"></td>
+  <td>6739</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank">Cardiff City F.C.</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16" height="16"></td>
+  <td>6711</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank">Cheltenham Town FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16" height="16"></td>
+  <td>6333</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank">Pittsburgh United</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16" height="16"></td>
+  <td>6119</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank">SC Hříbci</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16" height="16"></td>
+  <td>6077</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank">Celtic Lanterns</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16" height="16"></td>
+  <td>5832</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank">Gunners AFC 1886</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16" height="16"></td>
+  <td>5818</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank">Little Eaton Blazers...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16" height="16"></td>
+  <td>1725</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank">Woolverstone</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16" height="16"></td>
+  <td>1636</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><i>Skilly hráčů vždy násobeny koeficientem věku: do 24 let včetně *1; 25 let * 0,98; 26 let * 0,9+; 27 let * 0,94; 28 let * 0,92; 29 let * 0.91; 30 let * 0.9 </i>
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="vek" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Průměrný věk</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td width="50"><strong>průměr</strong></td>
+  <td></td>
+  <td width="150"><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank"> Little Eaton Blazers</a></td>
+</tr>
+<tr>
+  <td>21.70</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank"> Woolverstone</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.09</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank"> Gunners AFC 1886</a></td>
+</tr>
+<tr>
+  <td>22.44</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank"> Colchester Knights</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.45</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank"> Cheltenham Town FC</a></td>
+</tr>
+<tr>
+  <td>22.49</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank"> FC Macclesfield Town</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank"> Kluci z ulice</a></td>
+</tr>
+<tr>
+  <td>23.21</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank"> Buckley F.C.</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23.26</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank"> YNWA TEAM</a></td>
+</tr>
+<tr>
+  <td>23.36</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank"> Celtic Lanterns</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24.04</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank"> Viktoria Everton</a></td>
+</tr>
+<tr>
+  <td>24.12</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank"> SC Hříbci</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24.43</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank"> Nottingham Forest FC</a></td>
+</tr>
+<tr>
+  <td>25.42</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank"> Seatrend</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26.90</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank"> Pittsburgh United</a></td>
+</tr>
+<tr>
+  <td>28.52</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank"> Cardiff City F.C.</a></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="zkusenost" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Průměrná zkušenost</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td width="50"><strong>průměr</strong></td>
+  <td></td>
+  <td width="150"><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29.45</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank"> Pittsburgh United</a></td>
+</tr>
+<tr>
+  <td>26.80</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank"> Cardiff City F.C.</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25.88</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank"> Seatrend</a></td>
+</tr>
+<tr>
+  <td>19.90</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank"> Celtic Lanterns</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>17.61</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank"> Colchester Knights</a></td>
+</tr>
+<tr>
+  <td>16.07</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank"> Nottingham Forest FC</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.88</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank"> Kluci z ulice</a></td>
+</tr>
+<tr>
+  <td>12.51</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank"> Buckley F.C.</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.51</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank"> Viktoria Everton</a></td>
+</tr>
+<tr>
+  <td>10.06</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank"> Gunners AFC 1886</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>9.33</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank"> SC Hříbci</a></td>
+</tr>
+<tr>
+  <td>8.58</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank"> YNWA TEAM</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>7.27</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank"> FC Macclesfield Town</a></td>
+</tr>
+<tr>
+  <td>6.53</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank"> Cheltenham Town FC</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank"> Little Eaton Blazers</a></td>
+</tr>
+<tr>
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank"> Woolverstone</a></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="poctyhracu" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Počty hráčů v klubech</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>počet</strong></td>
+  <td><strong></strong></td>
+  <td><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>78</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78230.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78230" target="_blank"> SC Hříbci</a></td></tr>
+<tr>
+  <td>73</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78546.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78546" target="_blank"> Cheltenham Town FC</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>70</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76283.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76283" target="_blank"> Nottingham Forest FC</a></td></tr>
+<tr>
+  <td>65</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75570.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75570" target="_blank"> YNWA TEAM</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>55</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70566.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70566" target="_blank"> FC Macclesfield Town</a></td></tr>
+<tr>
+  <td>54</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76511.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76511" target="_blank"> Colchester Knights</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>54</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78441.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78441" target="_blank"> Gunners AFC 1886</a></td></tr>
+<tr>
+  <td>51</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76705.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76705" target="_blank"> Viktoria Everton</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>50</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_653.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=653" target="_blank"> Celtic Lanterns</a></td></tr>
+<tr>
+  <td>43</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73548.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73548" target="_blank"> Buckley F.C.</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>40</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77751.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77751" target="_blank"> Kluci z ulice</a></td></tr>
+<tr>
+  <td>26</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_70667.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=70667" target="_blank"> Seatrend</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66443.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66443" target="_blank"> Cardiff City F.C.</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78776.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78776" target="_blank"> Little Eaton Blazers</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78424.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78424" target="_blank"> Pittsburgh United</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78953.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78953" target="_blank"> Woolverstone</a></td></tr>
+</table>
+<br><hr><br>
+<table class="tab_stats" align="center">
+<tr>
+  <td>
+  Vygenerováno: @StatsCrawler 2026-04-13 08:39:49 AM
+ - <a href="https://www.brejk.cz/index.php?p=brejk_clanek&novinka=24390" target="_blank">Metodika statistik</a></td>
+</tr>
+</table>
+<br><br><br>
+</body>
+</html>
