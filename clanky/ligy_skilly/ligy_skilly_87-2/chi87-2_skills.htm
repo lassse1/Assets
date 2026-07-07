@@ -1,0 +1,4629 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="windows-1250">
+<meta name="description" content="Brejk stats">
+<style>
+  html, body {border: 0px; margin: 0px; padding: 0px; background-color: white;; ;}
+  table {margin: 0px auto;}
+  a, a:visited, a:active {text-decoration: underline; color: #0039a6;}
+  a:hover {text-decoration: none;	color: light-blue;}
+  caption {font: Verdana, sans-serif; color: #d52b1e;}
+  .tym {text-align: left; width: 150px;}
+  .cislo {text-align: center;}
+  .tab_stats {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_stats_tymy {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .hlava_tab_stats_tr {border: 0px solid currentColor; border-collapse: collapse; background-color: #0039a6; color: white;}
+  .sudy_radek_tab_stats {border: 0px solid currentColor; border-collapse: collapse; background-color: #d52b1e;}
+  .male_pismo {font: 7px Verdana, sans-serif;}
+  .mensi_pismo {font-size: 9px; font-family: Verdana, sans-serif;}
+  .tab_vysledek {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_sudy {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_middle {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_strelci {font: 9px Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .nadpis1 {font-family: Verdana, sans-serif; color: #d52b1e;}
+  .hr_col3, .hr_col4, .hr_col5, .hr_col6, .hr_col7, .hr_col8, .hr_col9, .hr_col10, .hr_col11, .hr_col12, .hr_col13, .hr_col14, .hr_col15, .hr_col16, .hr_col17 { width: 20px; text-align: center; vertical - align: middle; }
+  .odstavec {font-size:14px; }
+  .tab_stats_teams {font: small lucida sans unicode,lucida grande,sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .table-heat { border-collapse: collapse; text-align: center; font-family: sans-serif; border: 2px solid black;}
+  .th-heat, .td-heat { border: 1px solid #999; width: 40px; height: 40px; }
+  .heat-0 { background-color: #ffffff; }
+  .heat-1 { background-color: #fff3b0; }
+  .heat-2 { background-color: #ffc107; }
+  .heat-3 { background-color: #ff9800; color: white; }
+  .heat-4 { background-color: #f44336; color: white; }
+  .heatmap - number { font - size: 0.85em; }
+</style>
+</head>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tables = document.querySelectorAll("table.tab_stats_tymy");
+
+    tables.forEach((table) => {
+        const headerRow = table.querySelector("tr.hlava_tab_stats_tr");
+        if (!headerRow) return;
+
+        const headers = headerRow.querySelectorAll("td");
+
+        const columnMap = [];
+        let realIndex = 0;
+        headers.forEach((header) => {
+            const span = parseInt(header.getAttribute("colspan") || "1");
+            columnMap.push(realIndex);
+            realIndex += span;
+
+            // Připravíme span pro šipku
+            const arrow = document.createElement("span");
+            arrow.className = "sort-arrow";
+            arrow.style.marginLeft = "4px";
+            header.appendChild(arrow);
+        });
+
+        headers.forEach((header, i) => {
+            header.style.cursor = "pointer";
+            header.addEventListener("click", () => {
+                sortTableByColumn(table, headers, columnMap[i], i);
+            });
+        });
+    });
+
+    function sortTableByColumn(table, headers, columnIndex, headerIndex) {
+        const rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)"));
+
+        const isNumeric = rows.every(row => {
+            const cellText = row.cells[columnIndex]?.innerText.trim();
+            return /^-?\d+(\.\d+)?%?$/.test(cellText);
+        });
+
+        const currentDirection = headerSortDirection(headers, headerIndex);
+        const multiplier = currentDirection === "asc" ? 1 : -1;
+
+        rows.sort((a, b) => {
+            let aText = a.cells[columnIndex]?.innerText.trim();
+            let bText = b.cells[columnIndex]?.innerText.trim();
+
+            if (isNumeric) {
+                aText = aText.replace("%", "").replace(",", ".");
+                bText = bText.replace("%", "").replace(",", ".");
+                return (parseFloat(aText) - parseFloat(bText)) * multiplier;
+            } else {
+                return aText.localeCompare(bText) * multiplier;
+            }
+        });
+
+        rows.forEach(row => table.appendChild(row));
+
+        // smažeme šipky u všech
+        headers.forEach(h => {
+            const arrow = h.querySelector(".sort-arrow");
+            if (arrow) arrow.textContent = "";
+            h.removeAttribute("data-sort");
+        });
+
+        // nastavíme šipku na aktuální
+        const header = headers[headerIndex];
+        header.setAttribute("data-sort", currentDirection);
+        const arrow = header.querySelector(".sort-arrow");
+        if (arrow) arrow.textContent = currentDirection === "asc" ? "^" : "ˇ";
+    }
+
+    function headerSortDirection(headers, headerIndex) {
+        const header = headers[headerIndex];
+        const current = header.getAttribute("data-sort");
+        return current === "asc" ? "desc" : "asc";
+    }
+});
+</script>
+<body>
+<h1 align="center" class="nadpis1" id="nahoru">chi87-2</h1>
+<div align="center" class="mensi_pismo">
+  <a href="#brankari">[brankáři]</a>
+  <a href="#obranci">[obránci]</a>
+  <a href="#zaloznici">[záložníci]</a>
+  <a href="#utocnici">[útočníci]</a>
+  <a href="#topskilly">[top skilly]</a>
+  <a href="#skillytymy">[skilly týmy]</a>
+  <a href="#top11vstop22">[top11 vs top22]</a>
+  <a href="#vektop22">[věk top22]</a>
+  <a href="#osaTymu">[osa týmu]</a>
+  <a href="#vek">[věk]</a>
+  <a href="#zkusenost">[zkušenost]</a>
+  <a href="#poctyhracu">[počty hráčů]</a>
+</div>
+<br>
+<div align="right"><a href="#nahoru" id="brankari" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top brankáři</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2619868" target="_blank">Diego Maidana</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>432</td>
+  <td>53</td>
+  <td>45</td>
+  <td>54</td>
+  <td>321</td>
+  <td>47</td>
+  <td>42</td>
+  <td>52</td>
+  <td>188</td>
+  <td>254</td>
+  <td>105</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>38</td>
+  <td><strong>3225</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630582" target="_blank">Antonio Juan Araya</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>395</td>
+  <td>81</td>
+  <td>52</td>
+  <td>50</td>
+  <td>274</td>
+  <td>60</td>
+  <td>43</td>
+  <td>51</td>
+  <td>94</td>
+  <td>182</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>67</td>
+  <td><strong>2752</strong></td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2638613" target="_blank">Otilio Melivilú</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>404</td>
+  <td>34</td>
+  <td>31</td>
+  <td>28</td>
+  <td>305</td>
+  <td>45</td>
+  <td>45</td>
+  <td>47</td>
+  <td>215</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>140</td>
+  <td>0</td>
+  <td>5</td>
+  <td><strong>2634</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2633770" target="_blank">José Husson</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>LS</td>
+  <td>408</td>
+  <td>39</td>
+  <td>39</td>
+  <td>37</td>
+  <td>300</td>
+  <td>54</td>
+  <td>40</td>
+  <td>45</td>
+  <td>94</td>
+  <td>23</td>
+  <td>23</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>34</td>
+  <td><strong>2556</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2611666" target="_blank">Domingo Urzúa</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>300</td>
+  <td>39</td>
+  <td>42</td>
+  <td>28</td>
+  <td>313</td>
+  <td>46</td>
+  <td>44</td>
+  <td>30</td>
+  <td>219</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>42</td>
+  <td><strong>2499</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2640711" target="_blank">Lucas Louiron</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>P</td>
+  <td>426</td>
+  <td>33</td>
+  <td>32</td>
+  <td>46</td>
+  <td>184</td>
+  <td>42</td>
+  <td>31</td>
+  <td>43</td>
+  <td>75</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>34</td>
+  <td><strong>2170</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2646874" target="_blank">Enrique Vidangossy</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>308</td>
+  <td>62</td>
+  <td>46</td>
+  <td>60</td>
+  <td>301</td>
+  <td>61</td>
+  <td>52</td>
+  <td>53</td>
+  <td>92</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>2100</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618497" target="_blank">Gilberto Catejo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>204</td>
+  <td>43</td>
+  <td>51</td>
+  <td>62</td>
+  <td>314</td>
+  <td>47</td>
+  <td>52</td>
+  <td>59</td>
+  <td>83</td>
+  <td>7</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>1</td>
+  <td>0</td>
+  <td>32</td>
+  <td><strong>1928</strong></td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2650133" target="_blank">Saul Sepúlveda</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>293</td>
+  <td>72</td>
+  <td>33</td>
+  <td>25</td>
+  <td>255</td>
+  <td>25</td>
+  <td>31</td>
+  <td>24</td>
+  <td>38</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>26</td>
+  <td><strong>1908</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2641459" target="_blank">Valerio Paghera</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/it.png"></td>
+  <td>S</td>
+  <td>307</td>
+  <td>63</td>
+  <td>48</td>
+  <td>51</td>
+  <td>200</td>
+  <td>53</td>
+  <td>54</td>
+  <td>61</td>
+  <td>119</td>
+  <td>12</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>3</td>
+  <td><strong>1876</strong></td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2663990" target="_blank">Carlos Meneses</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>136</td>
+  <td>38</td>
+  <td>42</td>
+  <td>32</td>
+  <td>256</td>
+  <td>46</td>
+  <td>43</td>
+  <td>47</td>
+  <td>204</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>46</td>
+  <td><strong>1830</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2665151" target="_blank">Justin Busquets</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>199</td>
+  <td>45</td>
+  <td>51</td>
+  <td>47</td>
+  <td>332</td>
+  <td>56</td>
+  <td>43</td>
+  <td>45</td>
+  <td>44</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1748</strong></td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2648236" target="_blank">Cueto Torreblanca</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>159</td>
+  <td>39</td>
+  <td>43</td>
+  <td>35</td>
+  <td>335</td>
+  <td>30</td>
+  <td>41</td>
+  <td>32</td>
+  <td>42</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>19</td>
+  <td><strong>1697</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2660167" target="_blank">Claudio Cremashi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>203</td>
+  <td>44</td>
+  <td>41</td>
+  <td>37</td>
+  <td>306</td>
+  <td>40</td>
+  <td>42</td>
+  <td>41</td>
+  <td>30</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1652</strong></td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2664639" target="_blank">Juan Jose Figueroa</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>149</td>
+  <td>42</td>
+  <td>63</td>
+  <td>63</td>
+  <td>302</td>
+  <td>46</td>
+  <td>47</td>
+  <td>43</td>
+  <td>46</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1508</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2660835" target="_blank">Rafael Gutiérez</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>171</td>
+  <td>34</td>
+  <td>43</td>
+  <td>32</td>
+  <td>163</td>
+  <td>38</td>
+  <td>36</td>
+  <td>41</td>
+  <td>40</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>15</td>
+  <td><strong>1196</strong></td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2667709" target="_blank">Emilio Carmona</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>100</td>
+  <td>104</td>
+  <td>54</td>
+  <td>45</td>
+  <td>110</td>
+  <td>53</td>
+  <td>58</td>
+  <td>55</td>
+  <td>94</td>
+  <td>33</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>9</td>
+  <td><strong>1018</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2669881" target="_blank">Hector Pinilla</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>237</td>
+  <td>40</td>
+  <td>38</td>
+  <td>34</td>
+  <td>36</td>
+  <td>33</td>
+  <td>38</td>
+  <td>39</td>
+  <td>34</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>946</strong></td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2668047" target="_blank">Roger Carmona</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>200</td>
+  <td>39</td>
+  <td>36</td>
+  <td>40</td>
+  <td>38</td>
+  <td>40</td>
+  <td>42</td>
+  <td>37</td>
+  <td>42</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>856</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2668514" target="_blank">Andres Ortiz</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>202</td>
+  <td>39</td>
+  <td>38</td>
+  <td>42</td>
+  <td>40</td>
+  <td>35</td>
+  <td>41</td>
+  <td>36</td>
+  <td>36</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>855</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="obranci" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top obránci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2609195" target="_blank">Roger Ganso</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>59</td>
+  <td>466</td>
+  <td>44</td>
+  <td>46</td>
+  <td>416</td>
+  <td>55</td>
+  <td>154</td>
+  <td>45</td>
+  <td>202</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>57</td>
+  <td><strong>4246</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2623119" target="_blank">Teodoro Abrahamo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>63</td>
+  <td>481</td>
+  <td>62</td>
+  <td>44</td>
+  <td>354</td>
+  <td>62</td>
+  <td>123</td>
+  <td>63</td>
+  <td>204</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>31</td>
+  <td><strong>3984</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2613278" target="_blank">Silvestre Guevara</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>40</td>
+  <td>469</td>
+  <td>46</td>
+  <td>28</td>
+  <td>322</td>
+  <td>45</td>
+  <td>170</td>
+  <td>29</td>
+  <td>222</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>30</td>
+  <td><strong>3901</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617198" target="_blank">Oscar Maria Collar</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>48</td>
+  <td>401</td>
+  <td>54</td>
+  <td>43</td>
+  <td>317</td>
+  <td>130</td>
+  <td>130</td>
+  <td>50</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>58</td>
+  <td><strong>3798</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2616213" target="_blank">Mauricio Paisano</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>53</td>
+  <td>400</td>
+  <td>46</td>
+  <td>60</td>
+  <td>300</td>
+  <td>148</td>
+  <td>112</td>
+  <td>50</td>
+  <td>201</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>69</td>
+  <td><strong>3782</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617252" target="_blank">Julian Monje</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>55</td>
+  <td>450</td>
+  <td>52</td>
+  <td>52</td>
+  <td>333</td>
+  <td>43</td>
+  <td>106</td>
+  <td>49</td>
+  <td>225</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>249</td>
+  <td>0</td>
+  <td>20</td>
+  <td><strong>3752</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2629145" target="_blank">Esteban Urra</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>52</td>
+  <td>426</td>
+  <td>52</td>
+  <td>55</td>
+  <td>336</td>
+  <td>51</td>
+  <td>171</td>
+  <td>61</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>14</td>
+  <td><strong>3748</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617076" target="_blank">Felippe Vásquez</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>54</td>
+  <td>424</td>
+  <td>45</td>
+  <td>43</td>
+  <td>350</td>
+  <td>55</td>
+  <td>114</td>
+  <td>54</td>
+  <td>151</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>92</td>
+  <td>26</td>
+  <td><strong>3738</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2621291" target="_blank">Silvano Cascante</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>48</td>
+  <td>380</td>
+  <td>61</td>
+  <td>46</td>
+  <td>324</td>
+  <td>72</td>
+  <td>74</td>
+  <td>45</td>
+  <td>307</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>250</td>
+  <td>0</td>
+  <td>34</td>
+  <td><strong>3715</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2629146" target="_blank">Cristobal Gómez</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>47</td>
+  <td>412</td>
+  <td>42</td>
+  <td>57</td>
+  <td>402</td>
+  <td>57</td>
+  <td>53</td>
+  <td>61</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>237</td>
+  <td>0</td>
+  <td>18</td>
+  <td><strong>3704</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620598" target="_blank">Jonas Tiffels</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/de.png"></td>
+  <td>P</td>
+  <td>59</td>
+  <td>366</td>
+  <td>44</td>
+  <td>63</td>
+  <td>314</td>
+  <td>101</td>
+  <td>157</td>
+  <td>55</td>
+  <td>201</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>55</td>
+  <td><strong>3691</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2619973" target="_blank">Arrigo Devalpo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>58</td>
+  <td>376</td>
+  <td>59</td>
+  <td>49</td>
+  <td>301</td>
+  <td>129</td>
+  <td>101</td>
+  <td>56</td>
+  <td>203</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>58</td>
+  <td><strong>3640</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2614143" target="_blank">Rodolfo Joguin</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>38</td>
+  <td>373</td>
+  <td>39</td>
+  <td>42</td>
+  <td>301</td>
+  <td>52</td>
+  <td>37</td>
+  <td>32</td>
+  <td>270</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>63</td>
+  <td><strong>3591</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2619556" target="_blank">Domingo Mauro Avelán</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>44</td>
+  <td>428</td>
+  <td>62</td>
+  <td>46</td>
+  <td>299</td>
+  <td>58</td>
+  <td>128</td>
+  <td>52</td>
+  <td>175</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>247</td>
+  <td>0</td>
+  <td>34</td>
+  <td><strong>3586</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2621505" target="_blank">Braullio Arguinarena</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>58</td>
+  <td>424</td>
+  <td>46</td>
+  <td>50</td>
+  <td>308</td>
+  <td>43</td>
+  <td>116</td>
+  <td>61</td>
+  <td>192</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>244</td>
+  <td>0</td>
+  <td>29</td>
+  <td><strong>3584</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618953" target="_blank">Ruperto Quintanilla</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>43</td>
+  <td>489</td>
+  <td>46</td>
+  <td>59</td>
+  <td>261</td>
+  <td>48</td>
+  <td>120</td>
+  <td>42</td>
+  <td>209</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>221</td>
+  <td>0</td>
+  <td>21</td>
+  <td><strong>3574</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618600" target="_blank">Róbert Hamerlík</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/sk.png"></td>
+  <td>P</td>
+  <td>51</td>
+  <td>371</td>
+  <td>46</td>
+  <td>49</td>
+  <td>353</td>
+  <td>49</td>
+  <td>130</td>
+  <td>38</td>
+  <td>181</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>28</td>
+  <td><strong>3566</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2610832" target="_blank">Procopi Bende</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>28</td>
+  <td>369</td>
+  <td>36</td>
+  <td>45</td>
+  <td>303</td>
+  <td>41</td>
+  <td>41</td>
+  <td>48</td>
+  <td>250</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>65</td>
+  <td><strong>3564</strong></td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2636377" target="_blank">Ettore Matthei</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>48</td>
+  <td>361</td>
+  <td>53</td>
+  <td>48</td>
+  <td>301</td>
+  <td>102</td>
+  <td>118</td>
+  <td>112</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>34</td>
+  <td><strong>3548</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2636994" target="_blank">Antonio Ridad</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>41</td>
+  <td>412</td>
+  <td>37</td>
+  <td>33</td>
+  <td>267</td>
+  <td>39</td>
+  <td>30</td>
+  <td>47</td>
+  <td>182</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>94</td>
+  <td><strong>3546</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="zaloznici" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top záložníci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2632227" target="_blank">Alejandro Quintano</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>43</td>
+  <td>409</td>
+  <td>386</td>
+  <td>49</td>
+  <td>297</td>
+  <td>44</td>
+  <td>44</td>
+  <td>53</td>
+  <td>154</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>65</td>
+  <td><strong>4520</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2626067" target="_blank">Roque Droguett</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>45</td>
+  <td>318</td>
+  <td>350</td>
+  <td>57</td>
+  <td>327</td>
+  <td>46</td>
+  <td>120</td>
+  <td>116</td>
+  <td>253</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>17</td>
+  <td><strong>4404</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618824" target="_blank">Louis Roberto Woodoopan</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>54</td>
+  <td>331</td>
+  <td>309</td>
+  <td>59</td>
+  <td>318</td>
+  <td>44</td>
+  <td>156</td>
+  <td>53</td>
+  <td>208</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>54</td>
+  <td><strong>4345</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620105" target="_blank">Pino Pontarollo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/it.png"></td>
+  <td>L</td>
+  <td>51</td>
+  <td>370</td>
+  <td>319</td>
+  <td>61</td>
+  <td>315</td>
+  <td>53</td>
+  <td>96</td>
+  <td>55</td>
+  <td>140</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>24</td>
+  <td><strong>4150</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2640888" target="_blank">Chigy Sung-kju</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/kr.png"></td>
+  <td>LS</td>
+  <td>45</td>
+  <td>278</td>
+  <td>296</td>
+  <td>33</td>
+  <td>298</td>
+  <td>47</td>
+  <td>33</td>
+  <td>41</td>
+  <td>345</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>49</td>
+  <td><strong>4144</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2640887" target="_blank">Wag Ho-Cho</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/kr.png"></td>
+  <td>U</td>
+  <td>33</td>
+  <td>271</td>
+  <td>292</td>
+  <td>35</td>
+  <td>291</td>
+  <td>34</td>
+  <td>36</td>
+  <td>37</td>
+  <td>323</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>52</td>
+  <td><strong>4050</strong></td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2653773" target="_blank">Isaac Hector Moya</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>49</td>
+  <td>389</td>
+  <td>339</td>
+  <td>52</td>
+  <td>81</td>
+  <td>54</td>
+  <td>55</td>
+  <td>44</td>
+  <td>339</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>1</td>
+  <td><strong>3912</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647496" target="_blank">Modesto Carrillio</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>52</td>
+  <td>334</td>
+  <td>312</td>
+  <td>58</td>
+  <td>310</td>
+  <td>43</td>
+  <td>58</td>
+  <td>55</td>
+  <td>44</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>53</td>
+  <td><strong>3864</strong></td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647389" target="_blank">Lucas Palma</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>53</td>
+  <td>337</td>
+  <td>306</td>
+  <td>50</td>
+  <td>293</td>
+  <td>62</td>
+  <td>42</td>
+  <td>45</td>
+  <td>43</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>37</td>
+  <td><strong>3728</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647385" target="_blank">Franco Maria Vidal</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>54</td>
+  <td>325</td>
+  <td>314</td>
+  <td>53</td>
+  <td>297</td>
+  <td>55</td>
+  <td>48</td>
+  <td>42</td>
+  <td>46</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>22</td>
+  <td><strong>3672</strong></td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647494" target="_blank">Iglesias Sanhueza</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>59</td>
+  <td>305</td>
+  <td>294</td>
+  <td>48</td>
+  <td>268</td>
+  <td>60</td>
+  <td>49</td>
+  <td>53</td>
+  <td>61</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>57</td>
+  <td><strong>3665</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647497" target="_blank">Joaquin Cavalleri</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>50</td>
+  <td>325</td>
+  <td>299</td>
+  <td>42</td>
+  <td>273</td>
+  <td>42</td>
+  <td>44</td>
+  <td>54</td>
+  <td>46</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>36</td>
+  <td><strong>3611</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2624757" target="_blank">Arturo Caji Parraguez</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>56</td>
+  <td>206</td>
+  <td>320</td>
+  <td>56</td>
+  <td>331</td>
+  <td>63</td>
+  <td>51</td>
+  <td>47</td>
+  <td>202</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>203</td>
+  <td>0</td>
+  <td>10</td>
+  <td><strong>3572</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2640200" target="_blank">Glen Burnham</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>U</td>
+  <td>32</td>
+  <td>240</td>
+  <td>246</td>
+  <td>40</td>
+  <td>338</td>
+  <td>37</td>
+  <td>51</td>
+  <td>40</td>
+  <td>151</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>27</td>
+  <td><strong>3524</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618003" target="_blank">Elas Dummond</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>62</td>
+  <td>287</td>
+  <td>282</td>
+  <td>56</td>
+  <td>287</td>
+  <td>52</td>
+  <td>55</td>
+  <td>48</td>
+  <td>188</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>149</td>
+  <td>0</td>
+  <td>31</td>
+  <td><strong>3508</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618859" target="_blank">Roberto Parra</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>56</td>
+  <td>300</td>
+  <td>300</td>
+  <td>47</td>
+  <td>261</td>
+  <td>50</td>
+  <td>46</td>
+  <td>42</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>7</td>
+  <td><strong>3502</strong></td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2653745" target="_blank">Franco Tomas Turro</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>56</td>
+  <td>348</td>
+  <td>331</td>
+  <td>47</td>
+  <td>72</td>
+  <td>54</td>
+  <td>63</td>
+  <td>61</td>
+  <td>49</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>3186</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2653681" target="_blank">Antonio Millar</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>48</td>
+  <td>204</td>
+  <td>207</td>
+  <td>44</td>
+  <td>94</td>
+  <td>61</td>
+  <td>46</td>
+  <td>48</td>
+  <td>393</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>3092</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618850" target="_blank">Cleo Pepito Narváez</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>51</td>
+  <td>205</td>
+  <td>248</td>
+  <td>48</td>
+  <td>378</td>
+  <td>54</td>
+  <td>60</td>
+  <td>55</td>
+  <td>130</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>65</td>
+  <td><strong>3047</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2635426" target="_blank">Jervis Núňez</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>63</td>
+  <td>127</td>
+  <td>252</td>
+  <td>170</td>
+  <td>228</td>
+  <td>59</td>
+  <td>51</td>
+  <td>51</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>0</td>
+  <td>58</td>
+  <td><strong>3038</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="utocnici" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top útočníci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2615626" target="_blank">Adolfo Pablo Ledesma</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>L</td>
+  <td>46</td>
+  <td>61</td>
+  <td>400</td>
+  <td>400</td>
+  <td>332</td>
+  <td>56</td>
+  <td>93</td>
+  <td>57</td>
+  <td>220</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>7</td>
+  <td>255</td>
+  <td>0</td>
+  <td>42</td>
+  <td><strong>4572</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2617336" target="_blank">Enrique Eguaras Claro</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/es.png"></td>
+  <td>LS</td>
+  <td>56</td>
+  <td>51</td>
+  <td>401</td>
+  <td>351</td>
+  <td>302</td>
+  <td>100</td>
+  <td>162</td>
+  <td>52</td>
+  <td>236</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>7</td>
+  <td>217</td>
+  <td>0</td>
+  <td>25</td>
+  <td><strong>4361</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2626117" target="_blank">Carlos Elias Arguinarena</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>45</td>
+  <td>54</td>
+  <td>323</td>
+  <td>326</td>
+  <td>303</td>
+  <td>101</td>
+  <td>99</td>
+  <td>44</td>
+  <td>200</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>38</td>
+  <td><strong>4044</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2640886" target="_blank">Nou Jung-Taek</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/kr.png"></td>
+  <td>LS</td>
+  <td>47</td>
+  <td>35</td>
+  <td>400</td>
+  <td>353</td>
+  <td>301</td>
+  <td>36</td>
+  <td>45</td>
+  <td>37</td>
+  <td>36</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>224</td>
+  <td>0</td>
+  <td>39</td>
+  <td><strong>3885</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2624756" target="_blank">Celso Moya</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>46</td>
+  <td>44</td>
+  <td>300</td>
+  <td>302</td>
+  <td>371</td>
+  <td>60</td>
+  <td>50</td>
+  <td>54</td>
+  <td>201</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>0</td>
+  <td>1</td>
+  <td><strong>3802</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2626692" target="_blank">Stef de Jong</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/nl.png"></td>
+  <td>P</td>
+  <td>43</td>
+  <td>34</td>
+  <td>308</td>
+  <td>302</td>
+  <td>312</td>
+  <td>44</td>
+  <td>43</td>
+  <td>47</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>9</td>
+  <td><strong>3542</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2642828" target="_blank">Ernesto Upshall</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>62</td>
+  <td>48</td>
+  <td>293</td>
+  <td>200</td>
+  <td>253</td>
+  <td>47</td>
+  <td>46</td>
+  <td>62</td>
+  <td>431</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>1</td>
+  <td><strong>3516</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2609029" target="_blank">Waltre Griego</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>60</td>
+  <td>46</td>
+  <td>367</td>
+  <td>337</td>
+  <td>203</td>
+  <td>74</td>
+  <td>105</td>
+  <td>53</td>
+  <td>105</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>117</td>
+  <td>0</td>
+  <td>51</td>
+  <td><strong>3505</strong></td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647495" target="_blank">Orlando Icaza</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>49</td>
+  <td>48</td>
+  <td>411</td>
+  <td>385</td>
+  <td>306</td>
+  <td>53</td>
+  <td>43</td>
+  <td>44</td>
+  <td>51</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>31</td>
+  <td><strong>3471</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647390" target="_blank">Jose Cludio Loyola</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>53</td>
+  <td>52</td>
+  <td>401</td>
+  <td>380</td>
+  <td>309</td>
+  <td>50</td>
+  <td>48</td>
+  <td>61</td>
+  <td>46</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>27</td>
+  <td><strong>3414</strong></td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647384" target="_blank">Francisco Danesi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>46</td>
+  <td>46</td>
+  <td>395</td>
+  <td>392</td>
+  <td>302</td>
+  <td>42</td>
+  <td>57</td>
+  <td>43</td>
+  <td>47</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>22</td>
+  <td><strong>3402</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2624035" target="_blank">Salim Beauvillier</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>LS</td>
+  <td>56</td>
+  <td>47</td>
+  <td>310</td>
+  <td>301</td>
+  <td>300</td>
+  <td>57</td>
+  <td>61</td>
+  <td>37</td>
+  <td>119</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>156</td>
+  <td>0</td>
+  <td>22</td>
+  <td><strong>3388</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2626067" target="_blank">Roque Droguett</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>LS</td>
+  <td>45</td>
+  <td>318</td>
+  <td>350</td>
+  <td>57</td>
+  <td>327</td>
+  <td>46</td>
+  <td>120</td>
+  <td>116</td>
+  <td>253</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>17</td>
+  <td><strong>3350</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618824" target="_blank">Louis Roberto Woodoopan</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>U</td>
+  <td>54</td>
+  <td>331</td>
+  <td>309</td>
+  <td>59</td>
+  <td>318</td>
+  <td>44</td>
+  <td>156</td>
+  <td>53</td>
+  <td>208</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>54</td>
+  <td><strong>3342</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2644601" target="_blank">Julio Joan Joya</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>44</td>
+  <td>48</td>
+  <td>271</td>
+  <td>127</td>
+  <td>271</td>
+  <td>45</td>
+  <td>42</td>
+  <td>50</td>
+  <td>213</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>96</td>
+  <td><strong>3320</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2632227" target="_blank">Alejandro Quintano</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>S</td>
+  <td>43</td>
+  <td>409</td>
+  <td>386</td>
+  <td>49</td>
+  <td>297</td>
+  <td>44</td>
+  <td>44</td>
+  <td>53</td>
+  <td>154</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>65</td>
+  <td><strong>3286</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2631326" target="_blank">Guilhem Saint-Maximin</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>PS</td>
+  <td>39</td>
+  <td>54</td>
+  <td>251</td>
+  <td>286</td>
+  <td>214</td>
+  <td>58</td>
+  <td>61</td>
+  <td>46</td>
+  <td>180</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>17</td>
+  <td><strong>3271</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2641911" target="_blank">Patxi Soro Armando</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/es.png"></td>
+  <td>L</td>
+  <td>39</td>
+  <td>30</td>
+  <td>352</td>
+  <td>342</td>
+  <td>43</td>
+  <td>48</td>
+  <td>35</td>
+  <td>32</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>242</td>
+  <td>0</td>
+  <td>35</td>
+  <td><strong>3185</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2641168" target="_blank">Miguel Couto</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>P</td>
+  <td>49</td>
+  <td>52</td>
+  <td>305</td>
+  <td>305</td>
+  <td>324</td>
+  <td>61</td>
+  <td>44</td>
+  <td>42</td>
+  <td>215</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>38</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>3184</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2640888" target="_blank">Chigy Sung-kju</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/kr.png"></td>
+  <td>LS</td>
+  <td>45</td>
+  <td>278</td>
+  <td>296</td>
+  <td>33</td>
+  <td>298</td>
+  <td>47</td>
+  <td>33</td>
+  <td>41</td>
+  <td>345</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>49</td>
+  <td><strong>3180</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="topskilly" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Hráči s top skilly</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>skill</strong></td>
+  <td><strong>hodnota</strong></td>
+  <td><strong></strong></td>
+  <td><strong>jméno hráče</strong></td>
+  <td><strong>tým</strong></td>
+  <td><strong>věk</strong></td>
+</tr>
+<tr>
+  <td> <strong>G</strong>olman</td>
+  <td>432</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2619868&tym=52800" target="_blank">Diego Maidana</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td>29</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>O</strong>brana</td>
+  <td>489</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2618953&tym=52800" target="_blank">Ruperto Quintanilla</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td>29</td>
+</tr>
+<tr>
+  <td> <strong>U</strong>tok</td>
+  <td>411</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647495&tym=69258" target="_blank">Orlando Icaza</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov</a></td>
+  <td>24</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>S</strong>třela</td>
+  <td>400</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2615626&tym=52800" target="_blank">Adolfo Pablo Ledesma</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td>29</td>
+</tr>
+<tr>
+  <td> <strong>T</strong>echnika</td>
+  <td>435</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2629530&tym=69258" target="_blank">Francisco Biskupovic</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov</a></td>
+  <td>27</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>H</strong>lavičkování</td>
+  <td>165</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630173&tym=52800" target="_blank">Daniel Valdés</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td>27</td>
+</tr>
+<tr>
+  <td> <strong>A</strong>gresivita</td>
+  <td>171</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2629145&tym=66413" target="_blank">Esteban Urra</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td>27</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>P</strong>řihrávání</td>
+  <td>116</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2626067&tym=52800" target="_blank">Roque Droguett</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td>28</td>
+</tr>
+<tr>
+  <td> <strong>K</strong>ondice</td>
+  <td>431</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2642828&tym=69258" target="_blank">Ernesto Upshall</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov</a></td>
+  <td>25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>Zk</strong>ušenost max</td>
+  <td>116</td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2621635&tym=72140" target="_blank">Cleo  Quijanes</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td>29</td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 22 hráčů (70 % nej 11ka [4-4-2] - 30 % náhradníci [4-4-2])</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>35961</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>33403</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>32969</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>30810</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>28691</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>27164</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>26134</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>25594</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>9873</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>9788</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>9785</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>9777</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>9749</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>9728</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>9694</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>9569</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>2344</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>2326</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>2135</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>2115</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>1930</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>1829</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>1723</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>1482</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>731</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>690</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>657</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>647</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>646</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>644</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>644</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>632</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>12753</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>12037</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>11950</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>10761</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>10522</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>9786</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>9694</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>9286</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>3182</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>3172</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>3171</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>3168</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>3148</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>3144</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>3138</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>3112</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>14902</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>12810</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>12382</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>11782</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>10503</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>10344</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>10163</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>9765</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>4310</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>4282</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>4277</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>4251</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>4239</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>4215</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>4208</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>4197</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>7091</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>6152</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>5923</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>5882</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>5689</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>5652</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>4704</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>4306</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>1801</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>1701</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>1690</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>1687</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>1663</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>1656</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>1644</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>1616</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><i>Skilly hráčů vždy násobeny koeficientem věku: do 24 let včetně *1; 25 let * 0,97; 26 let * 0,94; 27 let * 0,9; 28 let a výše * 0,8 </i>
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 11 nej hráčů [4-4-2]</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>44341</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>38808</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>36952</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>36604</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>35162</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>34117</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>31697</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>16377</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>5709</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>5703</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>5658</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>5633</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>5601</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>5559</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>5459</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>5456</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>3225</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>2752</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>2634</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>2556</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>2170</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>1830</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>1697</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>758</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>700</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>664</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>650</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>648</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>602</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>537</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>536</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>15727</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>14781</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>14412</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>14036</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>13646</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>13378</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>12339</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>10197</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>3295</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>3265</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>3249</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>3248</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>3231</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>3223</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>3203</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>3151</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>16626</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>16456</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>14298</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>12920</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>12562</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>10985</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>10786</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>8933</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>7401</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>6986</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>6930</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>6573</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>6470</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>6402</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>4350</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>1833</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>1755</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>1748</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>1734</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>1715</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>1704</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>1671</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>1658</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="top11vstop22" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Týmy - rozdíl Top 11 vs. Top 22 (vliv lavičky)</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>Top 11</strong></td>
+  <td><strong>Top 22</strong></td>
+  <td><strong>Rozdíl</strong></td>
+  <td><strong>Poměr</strong></td>
+  <td><strong>P11</strong></td>
+  <td><strong>P22</strong></td>
+  <td><strong>Změna</strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>44341</td>
+  <td>30810</td>
+  <td>-13531</td>
+  <td>0.695</td>
+  <td>1.</td>
+  <td>4.</td>
+  <td>+3</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>38808</td>
+  <td>35961</td>
+  <td>-2847</td>
+  <td>0.927</td>
+  <td>2.</td>
+  <td>1.</td>
+  <td>-1</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>36952</td>
+  <td>33403</td>
+  <td>-3549</td>
+  <td>0.904</td>
+  <td>3.</td>
+  <td>2.</td>
+  <td>-1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>36604</td>
+  <td>26134</td>
+  <td>-10470</td>
+  <td>0.714</td>
+  <td>4.</td>
+  <td>7.</td>
+  <td>+3</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>35162</td>
+  <td>32969</td>
+  <td>-2193</td>
+  <td>0.938</td>
+  <td>5.</td>
+  <td>3.</td>
+  <td>-2</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial …</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>34117</td>
+  <td>28691</td>
+  <td>-5426</td>
+  <td>0.841</td>
+  <td>6.</td>
+  <td>5.</td>
+  <td>-1</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>31697</td>
+  <td>27164</td>
+  <td>-4533</td>
+  <td>0.857</td>
+  <td>7.</td>
+  <td>6.</td>
+  <td>-1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>16377</td>
+  <td>25594</td>
+  <td>+9217</td>
+  <td>1.563</td>
+  <td>8.</td>
+  <td>8.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>5709</td>
+  <td>9785</td>
+  <td>+4076</td>
+  <td>1.714</td>
+  <td>9.</td>
+  <td>11.</td>
+  <td>+2</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>5703</td>
+  <td>9788</td>
+  <td>+4085</td>
+  <td>1.716</td>
+  <td>10.</td>
+  <td>10.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>5658</td>
+  <td>9694</td>
+  <td>+4036</td>
+  <td>1.713</td>
+  <td>11.</td>
+  <td>15.</td>
+  <td>+4</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>5633</td>
+  <td>9749</td>
+  <td>+4116</td>
+  <td>1.731</td>
+  <td>12.</td>
+  <td>13.</td>
+  <td>+1</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>5601</td>
+  <td>9873</td>
+  <td>+4272</td>
+  <td>1.763</td>
+  <td>13.</td>
+  <td>9.</td>
+  <td>-4</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>5559</td>
+  <td>9728</td>
+  <td>+4169</td>
+  <td>1.750</td>
+  <td>14.</td>
+  <td>14.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>5459</td>
+  <td>9569</td>
+  <td>+4110</td>
+  <td>1.753</td>
+  <td>15.</td>
+  <td>16.</td>
+  <td>+1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>5456</td>
+  <td>9777</td>
+  <td>+4321</td>
+  <td>1.792</td>
+  <td>16.</td>
+  <td>12.</td>
+  <td>-4</td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Top 11</strong> představuje sílu nejlepší sestavy [4-4-2] bez zohlednění věku.
+<br><strong>Top 22</strong> představuje sílu kádru při modelu 70 % nej 11ka + 30 % náhradníci [4-4-2], včetně věkové redukce.
+<br><strong>Rozdíl</strong> = Top 22 - Top 11. Ukazuje, kolik síly přidá šířka kádru.
+<br><strong>Poměr</strong> = Top 22 / Top 11. Vyjadřuje, jak moc tým těží ze své lavičky – čím vyšší, tím vyrovnanější tým.
+<br><strong>Změna</strong> vyjadřuje posun pořadí mezi tabulkou Top 11 a Top 22. Záporná hodnota znamená zlepšení po započtení šířky kádru.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="vektop22" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Průměrný věk TOP 22</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>&#8960; Věk</strong></td>
+  <td><strong>&#8960; G </strong></td>
+  <td><strong>&#8960; O </strong></td>
+  <td><strong>&#8960; Z </strong></td>
+  <td><strong>&#8960; U </strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td><strong>20.68</strong></td>
+  <td>19.00</td>
+  <td>20.88</td>
+  <td>20.88</td>
+  <td>20.75</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td><strong>20.86</strong></td>
+  <td>21.00</td>
+  <td>21.00</td>
+  <td>21.00</td>
+  <td>20.25</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td><strong>21.00</strong></td>
+  <td>20.50</td>
+  <td>21.00</td>
+  <td>21.00</td>
+  <td>21.25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td><strong>21.73</strong></td>
+  <td>20.50</td>
+  <td>22.13</td>
+  <td>21.63</td>
+  <td>21.75</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td><strong>21.77</strong></td>
+  <td>21.50</td>
+  <td>22.00</td>
+  <td>21.75</td>
+  <td>21.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td><strong>22.05</strong></td>
+  <td>21.00</td>
+  <td>22.13</td>
+  <td>22.13</td>
+  <td>22.25</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td><strong>22.14</strong></td>
+  <td>23.00</td>
+  <td>22.00</td>
+  <td>22.00</td>
+  <td>22.25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td><strong>22.41</strong></td>
+  <td>22.00</td>
+  <td>22.50</td>
+  <td>22.13</td>
+  <td>23.00</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td><strong>22.59</strong></td>
+  <td>21.50</td>
+  <td>22.75</td>
+  <td>22.75</td>
+  <td>22.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td><strong>25.64</strong></td>
+  <td>26.50</td>
+  <td>25.38</td>
+  <td>25.50</td>
+  <td>26.00</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td><strong>25.95</strong></td>
+  <td>26.50</td>
+  <td>26.88</td>
+  <td>25.63</td>
+  <td>24.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td><strong>26.32</strong></td>
+  <td>26.50</td>
+  <td>25.38</td>
+  <td>27.00</td>
+  <td>26.75</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td><strong>26.64</strong></td>
+  <td>27.50</td>
+  <td>26.25</td>
+  <td>26.75</td>
+  <td>26.75</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial …</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td><strong>27.77</strong></td>
+  <td>28.50</td>
+  <td>28.00</td>
+  <td>28.00</td>
+  <td>26.50</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td><strong>28.86</strong></td>
+  <td>29.00</td>
+  <td>28.88</td>
+  <td>29.00</td>
+  <td>28.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td><strong>29.09</strong></td>
+  <td>29.50</td>
+  <td>29.25</td>
+  <td>29.13</td>
+  <td>28.50</td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Průměrný věk TOP 22</strong> vychází z výběru 2 brankářů, 8 obránců, 8 záložníků a 4 útočníků dle předpočítaných skillů.
+<br><strong>Věk</strong> představuje průměrný věk celé této skupiny.
+<br>Sloupce <strong>G</strong>, <strong>O</strong>, <strong>Z</strong> a <strong>U</strong> zobrazují průměrný věk vybraných hráčů na jednotlivých postech.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="osaTymu" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Síla osy týmu</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>nej G</strong></td>
+  <td><strong>nej O</strong></td>
+  <td><strong>nej Z</strong></td>
+  <td><strong>nej U</strong></td>
+  <td><strong>Osa týmu</strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>3225</td>
+  <td>4246</td>
+  <td>4404</td>
+  <td>4572</td>
+  <td><strong>16447</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>2296</td>
+  <td>3984</td>
+  <td>4520</td>
+  <td>3885</td>
+  <td><strong>14685</strong></td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>2634</td>
+  <td>3748</td>
+  <td>3764</td>
+  <td>3802</td>
+  <td><strong>13948</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>2134</td>
+  <td>3691</td>
+  <td>4150</td>
+  <td>3505</td>
+  <td><strong>13480</strong></td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial …</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>2556</td>
+  <td>3591</td>
+  <td>3578</td>
+  <td>3542</td>
+  <td><strong>13267</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>2752</td>
+  <td>3546</td>
+  <td>3540</td>
+  <td>3320</td>
+  <td><strong>13158</strong></td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>2268</td>
+  <td>3715</td>
+  <td>3759</td>
+  <td>3271</td>
+  <td><strong>13013</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>1830</td>
+  <td>3017</td>
+  <td>3003</td>
+  <td>2187</td>
+  <td><strong>10037</strong></td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>700</td>
+  <td>846</td>
+  <td>1147</td>
+  <td>949</td>
+  <td><strong>3642</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>658</td>
+  <td>844</td>
+  <td>1152</td>
+  <td>940</td>
+  <td><strong>3594</strong></td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M…</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>758</td>
+  <td>826</td>
+  <td>1120</td>
+  <td>888</td>
+  <td><strong>3592</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>664</td>
+  <td>845</td>
+  <td>1150</td>
+  <td>887</td>
+  <td><strong>3546</strong></td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>648</td>
+  <td>849</td>
+  <td>1104</td>
+  <td>935</td>
+  <td><strong>3536</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>652</td>
+  <td>820</td>
+  <td>1102</td>
+  <td>872</td>
+  <td><strong>3446</strong></td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>634</td>
+  <td>832</td>
+  <td>1136</td>
+  <td>839</td>
+  <td><strong>3441</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>650</td>
+  <td>808</td>
+  <td>1090</td>
+  <td>860</td>
+  <td><strong>3408</strong></td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Síla osy týmu</strong> představuje součet nejlepších hráčů na klíčových postech.
+<br>Do osy se započítává nejlepší <strong>brankář</strong>, <strong>obránce</strong>, <strong>záložník</strong> a <strong>útočník</strong> daného týmu.
+<br><strong>Osa</strong> ukazuje sílu základní kostry týmu.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 22 hráčů (60 % nej 11ka [4-4-2] - 40 % náhradníci [4-4-2]) - Dle Huntize</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>38871</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>38343</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>34570</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>33096</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>33040</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>32917</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>28692</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>25247</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>9769</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>9704</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>9693</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>9685</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>9645</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>9644</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>9584</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>9507</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>2677</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>2368</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>2359</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>2341</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>2135</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>2072</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>1921</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>1828</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>722</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>687</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>655</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>647</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>642</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>642</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>641</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>632</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>13834</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>13545</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>12843</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>12255</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>12183</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>11869</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>9634</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>9526</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>3146</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>3145</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>3142</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>3139</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>3123</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>3117</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>3115</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>3099</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>15557</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>14762</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>13117</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>13094</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>12861</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>12131</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>11206</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>9601</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>4255</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>4226</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>4222</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>4211</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>4188</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>4180</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>4164</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>4156</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank">FC.MARIÁNSKÉ HORY</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16" height="16"></td>
+  <td>7598</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank">FC Olympique Syčákov...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16" height="16"></td>
+  <td>7106</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank">Deportes Provincial ...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16" height="16"></td>
+  <td>6262</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank">Chelsea B</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16" height="16"></td>
+  <td>6243</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank">Santiago Wanderers</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16" height="16"></td>
+  <td>5953</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank">Atletico Hornos FC</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16" height="16"></td>
+  <td>5826</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank">Red Condors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16" height="16"></td>
+  <td>5781</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank">YBA Punta Arenas</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16" height="16"></td>
+  <td>4292</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank">AC Poblacion Morande...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16" height="16"></td>
+  <td>1791</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank">A.C. Chacarilla de M...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16" height="16"></td>
+  <td>1685</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank">Melleico Seahorses</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16" height="16"></td>
+  <td>1671</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank">F.C. El Almendra Blu...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16" height="16"></td>
+  <td>1668</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank">Amazac Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16" height="16"></td>
+  <td>1660</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank">AC Nerquihue Geckos</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16" height="16"></td>
+  <td>1637</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank">SC Victoria Kings</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16" height="16"></td>
+  <td>1624</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank">Maiten Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16" height="16"></td>
+  <td>1602</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><i>Skilly hráčů vždy násobeny koeficientem věku: do 24 let včetně *1; 25 let * 0,98; 26 let * 0,9+; 27 let * 0,94; 28 let * 0,92; 29 let * 0.91; 30 let * 0.9 </i>
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="vek" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Průměrný věk</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td width="50"><strong>průměr</strong></td>
+  <td></td>
+  <td width="150"><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21.15</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank"> Melleico Seahorses</a></td>
+</tr>
+<tr>
+  <td>21.25</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank"> AC Nerquihue Geckos</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21.40</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank"> Amazac Inferno</a></td>
+</tr>
+<tr>
+  <td>21.45</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank"> F.C. El Almendra Blues</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21.51</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank"> YBA Punta Arenas</a></td>
+</tr>
+<tr>
+  <td>21.80</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank"> SC Victoria Kings</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21.90</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank"> A.C. Chacarilla de Macul Timbers</a></td>
+</tr>
+<tr>
+  <td>22.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank"> Maiten Inferno</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.11</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank"> Santiago Wanderers</a></td>
+</tr>
+<tr>
+  <td>22.45</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank"> AC Poblacion Morande Revolution</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.93</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank"> Red Condors</a></td>
+</tr>
+<tr>
+  <td>23.68</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank"> FC Olympique Syčákov</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23.69</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank"> Chelsea B</a></td>
+</tr>
+<tr>
+  <td>24.60</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank"> Atletico Hornos FC</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24.86</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank"> Deportes Provincial Osorno</a></td>
+</tr>
+<tr>
+  <td>28.71</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank"> FC.MARIÁNSKÉ HORY</a></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="zkusenost" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Průměrná zkušenost</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td width="50"><strong>průměr</strong></td>
+  <td></td>
+  <td width="150"><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>39.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank"> FC.MARIÁNSKÉ HORY</a></td>
+</tr>
+<tr>
+  <td>31.82</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank"> YBA Punta Arenas</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21.90</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank"> Deportes Provincial Osorno</a></td>
+</tr>
+<tr>
+  <td>17.83</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank"> Santiago Wanderers</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>17.83</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank"> Atletico Hornos FC</a></td>
+</tr>
+<tr>
+  <td>14.53</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank"> Red Condors</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.24</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank"> FC Olympique Syčákov</a></td>
+</tr>
+<tr>
+  <td>4.92</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank"> Chelsea B</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank"> Amazac Inferno</a></td>
+</tr>
+<tr>
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank"> AC Poblacion Morande Revolution</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank"> AC Nerquihue Geckos</a></td>
+</tr>
+<tr>
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank"> F.C. El Almendra Blues</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank"> A.C. Chacarilla de Macul Timbers</a></td>
+</tr>
+<tr>
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank"> Melleico Seahorses</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank"> Maiten Inferno</a></td>
+</tr>
+<tr>
+  <td>0.00</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank"> SC Victoria Kings</a></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="poctyhracu" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Počty hráčů v klubech</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>počet</strong></td>
+  <td><strong></strong></td>
+  <td><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>71</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_66413.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=66413" target="_blank"> Chelsea B</a></td></tr>
+<tr>
+  <td>63</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_69258.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=69258" target="_blank"> FC Olympique Syčákov</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>59</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73713.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73713" target="_blank"> Red Condors</a></td></tr>
+<tr>
+  <td>52</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73843.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73843" target="_blank"> Atletico Hornos FC</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>46</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_73437.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=73437" target="_blank"> Santiago Wanderers</a></td></tr>
+<tr>
+  <td>39</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_72140.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=72140" target="_blank"> YBA Punta Arenas</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74148.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74148" target="_blank"> Deportes Provincial Osorno</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76914.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76914" target="_blank"> A.C. Chacarilla de Macul Timbers</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76588.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76588" target="_blank"> AC Nerquihue Geckos</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75385.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75385" target="_blank"> AC Poblacion Morande Revolution</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_74518.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=74518" target="_blank"> Amazac Inferno</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76681.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76681" target="_blank"> F.C. El Almendra Blues</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77108.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77108" target="_blank"> Maiten Inferno</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77039.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77039" target="_blank"> Melleico Seahorses</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77422.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77422" target="_blank"> SC Victoria Kings</a></td></tr>
+<tr>
+  <td>17</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_52800.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=52800" target="_blank"> FC.MARIÁNSKÉ HORY</a></td></tr>
+</table>
+<br><hr><br>
+<table class="tab_stats" align="center">
+<tr>
+  <td>
+  Vygenerováno: @StatsCrawler 2026-07-07 10:29:44 AM
+ - <a href="https://www.brejk.cz/index.php?p=brejk_clanek&novinka=24390" target="_blank">Metodika statistik</a></td>
+</tr>
+</table>
+<br><br><br>
+</body>
+</html>
