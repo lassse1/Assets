@@ -1,0 +1,4186 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="windows-1250">
+<meta name="description" content="Brejk stats">
+<style>
+  html, body {border: 0px; margin: 0px; padding: 0px; background-color: white;; ;}
+  table {margin: 0px auto;}
+  a, a:visited, a:active {text-decoration: underline; color: #008753;}
+  a:hover {text-decoration: none;	color: light-blue;}
+  caption {font: Verdana, sans-serif; color: #008753;}
+  .tym {text-align: left; width: 150px;}
+  .cislo {text-align: center;}
+  .tab_stats {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_stats_tymy {font:xx-small/1.2 Verdana, sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .hlava_tab_stats_tr {border: 0px solid currentColor; border-collapse: collapse; background-color: #008753; color: #ffffff;}
+  .sudy_radek_tab_stats {border: 0px solid currentColor; border-collapse: collapse; background-color: #D3D3D3;}
+  .male_pismo {font: 7px Verdana, sans-serif;}
+  .mensi_pismo {font-size: 9px; font-family: Verdana, sans-serif;}
+  .tab_vysledek {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_sudy {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_stats_middle {font: xx-small/1.2 Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .tab_vysledek_strelci {font: 9px Verdana, sans-serif; border: 0px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .nadpis1 {font-family: Verdana, sans-serif; color: #008753;}
+  .hr_col3, .hr_col4, .hr_col5, .hr_col6, .hr_col7, .hr_col8, .hr_col9, .hr_col10, .hr_col11, .hr_col12, .hr_col13, .hr_col14, .hr_col15, .hr_col16, .hr_col17 { width: 20px; text-align: center; vertical - align: middle; }
+  .odstavec {font-size:14px; }
+  .tab_stats_teams {font: small lucida sans unicode,lucida grande,sans-serif; border: 1px solid currentColor; border-collapse: collapse; font-size-adjust: none; font-stretch: normal;}
+  .table-heat { border-collapse: collapse; text-align: center; font-family: sans-serif; border: 2px solid black;}
+  .th-heat, .td-heat { border: 1px solid #999; width: 40px; height: 40px; }
+  .heat-0 { background-color: #ffffff; }
+  .heat-1 { background-color: #fff3b0; }
+  .heat-2 { background-color: #ffc107; }
+  .heat-3 { background-color: #ff9800; color: white; }
+  .heat-4 { background-color: #f44336; color: white; }
+  .heatmap - number { font - size: 0.85em; }
+</style>
+</head>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tables = document.querySelectorAll("table.tab_stats_tymy");
+
+    tables.forEach((table) => {
+        const headerRow = table.querySelector("tr.hlava_tab_stats_tr");
+        if (!headerRow) return;
+
+        const headers = headerRow.querySelectorAll("td");
+
+        const columnMap = [];
+        let realIndex = 0;
+        headers.forEach((header) => {
+            const span = parseInt(header.getAttribute("colspan") || "1");
+            columnMap.push(realIndex);
+            realIndex += span;
+
+            // Připravíme span pro šipku
+            const arrow = document.createElement("span");
+            arrow.className = "sort-arrow";
+            arrow.style.marginLeft = "4px";
+            header.appendChild(arrow);
+        });
+
+        headers.forEach((header, i) => {
+            header.style.cursor = "pointer";
+            header.addEventListener("click", () => {
+                sortTableByColumn(table, headers, columnMap[i], i);
+            });
+        });
+    });
+
+    function sortTableByColumn(table, headers, columnIndex, headerIndex) {
+        const rows = Array.from(table.querySelectorAll("tr:nth-child(n+2)"));
+
+        const isNumeric = rows.every(row => {
+            const cellText = row.cells[columnIndex]?.innerText.trim();
+            return /^-?\d+(\.\d+)?%?$/.test(cellText);
+        });
+
+        const currentDirection = headerSortDirection(headers, headerIndex);
+        const multiplier = currentDirection === "asc" ? 1 : -1;
+
+        rows.sort((a, b) => {
+            let aText = a.cells[columnIndex]?.innerText.trim();
+            let bText = b.cells[columnIndex]?.innerText.trim();
+
+            if (isNumeric) {
+                aText = aText.replace("%", "").replace(",", ".");
+                bText = bText.replace("%", "").replace(",", ".");
+                return (parseFloat(aText) - parseFloat(bText)) * multiplier;
+            } else {
+                return aText.localeCompare(bText) * multiplier;
+            }
+        });
+
+        rows.forEach(row => table.appendChild(row));
+
+        // smažeme šipky u všech
+        headers.forEach(h => {
+            const arrow = h.querySelector(".sort-arrow");
+            if (arrow) arrow.textContent = "";
+            h.removeAttribute("data-sort");
+        });
+
+        // nastavíme šipku na aktuální
+        const header = headers[headerIndex];
+        header.setAttribute("data-sort", currentDirection);
+        const arrow = header.querySelector(".sort-arrow");
+        if (arrow) arrow.textContent = currentDirection === "asc" ? "^" : "ˇ";
+    }
+
+    function headerSortDirection(headers, headerIndex) {
+        const header = headers[headerIndex];
+        const current = header.getAttribute("data-sort");
+        return current === "asc" ? "desc" : "asc";
+    }
+});
+</script>
+<body>
+<h1 align="center" class="nadpis1" id="nahoru">nig88-2</h1>
+<div align="center" class="mensi_pismo">
+  <a href="#brankari">[brankáři]</a>
+  <a href="#obranci">[obránci]</a>
+  <a href="#zaloznici">[záložníci]</a>
+  <a href="#utocnici">[útočníci]</a>
+  <a href="#topskilly">[top skilly]</a>
+  <a href="#skillytymy">[skilly týmy]</a>
+  <a href="#top11vstop22">[top11 vs top22]</a>
+  <a href="#vektop22">[věk top22]</a>
+  <a href="#osaTymu">[osa týmu]</a>
+  <a href="#vek">[věk]</a>
+  <a href="#zkusenost">[zkušenost]</a>
+  <a href="#poctyhracu">[počty hráčů]</a>
+</div>
+<br>
+<div align="right"><a href="#nahoru" id="brankari" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top brankáři</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2649593" target="_blank">Nwankwo Udebuluzor</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>243</td>
+  <td>45</td>
+  <td>43</td>
+  <td>32</td>
+  <td>269</td>
+  <td>31</td>
+  <td>48</td>
+  <td>33</td>
+  <td>242</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>24</td>
+  <td><strong>2178</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2651115" target="_blank">Abiodun Ukohu</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>331</td>
+  <td>36</td>
+  <td>28</td>
+  <td>42</td>
+  <td>260</td>
+  <td>35</td>
+  <td>42</td>
+  <td>44</td>
+  <td>46</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>14</td>
+  <td><strong>1979</strong></td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2663938" target="_blank">Chiebunigom Famewo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>251</td>
+  <td>50</td>
+  <td>62</td>
+  <td>54</td>
+  <td>208</td>
+  <td>47</td>
+  <td>54</td>
+  <td>63</td>
+  <td>103</td>
+  <td>101</td>
+  <td>102</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>9</td>
+  <td><strong>1904</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2663951" target="_blank">Nnayelum Amaefule</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>350</td>
+  <td>57</td>
+  <td>42</td>
+  <td>45</td>
+  <td>177</td>
+  <td>45</td>
+  <td>49</td>
+  <td>63</td>
+  <td>57</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1784</strong></td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2679382" target="_blank">Andri Grazziani de Jesus</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/br.png"></td>
+  <td>L</td>
+  <td>159</td>
+  <td>43</td>
+  <td>45</td>
+  <td>62</td>
+  <td>122</td>
+  <td>54</td>
+  <td>51</td>
+  <td>51</td>
+  <td>59</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1030</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2400129" target="_blank">Omorodion Amuneke</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>188</td>
+  <td>58</td>
+  <td>55</td>
+  <td>18</td>
+  <td>91</td>
+  <td>29</td>
+  <td>27</td>
+  <td>22</td>
+  <td>18</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>21</td>
+  <td><strong>1026</strong></td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2417894" target="_blank">Itseagh Adebisi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>179</td>
+  <td>51</td>
+  <td>47</td>
+  <td>12</td>
+  <td>90</td>
+  <td>17</td>
+  <td>36</td>
+  <td>35</td>
+  <td>15</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>5</td>
+  <td><strong>926</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2678685" target="_blank">Odupute Mbaoma</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>127</td>
+  <td>51</td>
+  <td>55</td>
+  <td>58</td>
+  <td>116</td>
+  <td>61</td>
+  <td>55</td>
+  <td>49</td>
+  <td>45</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>894</strong></td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2680151" target="_blank">Enefiok Salahudeen</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>S</td>
+  <td>159</td>
+  <td>45</td>
+  <td>52</td>
+  <td>54</td>
+  <td>61</td>
+  <td>50</td>
+  <td>55</td>
+  <td>50</td>
+  <td>42</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>814</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>19</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2681009" target="_blank">Pierre-Alain Pléa</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/fr.png"></td>
+  <td>LS</td>
+  <td>139</td>
+  <td>38</td>
+  <td>43</td>
+  <td>55</td>
+  <td>56</td>
+  <td>53</td>
+  <td>52</td>
+  <td>54</td>
+  <td>65</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>780</strong></td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2677012" target="_blank">Wonder Etafia</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>134</td>
+  <td>49</td>
+  <td>45</td>
+  <td>53</td>
+  <td>48</td>
+  <td>51</td>
+  <td>59</td>
+  <td>54</td>
+  <td>62</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>148</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>746</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>19</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2681160" target="_blank">Agbongiator Kashi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>130</td>
+  <td>48</td>
+  <td>40</td>
+  <td>47</td>
+  <td>54</td>
+  <td>39</td>
+  <td>42</td>
+  <td>56</td>
+  <td>46</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>720</strong></td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2683079" target="_blank">Jay-Jay Obazaye</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>126</td>
+  <td>30</td>
+  <td>35</td>
+  <td>31</td>
+  <td>29</td>
+  <td>41</td>
+  <td>29</td>
+  <td>44</td>
+  <td>36</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>589</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="obranci" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top obránci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630748" target="_blank">Obari Ugwunna</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>P</td>
+  <td>33</td>
+  <td>396</td>
+  <td>41</td>
+  <td>29</td>
+  <td>320</td>
+  <td>45</td>
+  <td>131</td>
+  <td>37</td>
+  <td>120</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>14</td>
+  <td><strong>3360</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2632621" target="_blank">Nwabunnor Alozie</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>33</td>
+  <td>347</td>
+  <td>40</td>
+  <td>28</td>
+  <td>310</td>
+  <td>82</td>
+  <td>117</td>
+  <td>36</td>
+  <td>160</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>2</td>
+  <td>17</td>
+  <td><strong>3292</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2636809" target="_blank">Ekwutosi Amachare</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>42</td>
+  <td>303</td>
+  <td>48</td>
+  <td>55</td>
+  <td>301</td>
+  <td>51</td>
+  <td>73</td>
+  <td>47</td>
+  <td>201</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>22</td>
+  <td><strong>3147</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2639611" target="_blank">Cesare Negro</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/it.png"></td>
+  <td>LS</td>
+  <td>54</td>
+  <td>500</td>
+  <td>40</td>
+  <td>40</td>
+  <td>207</td>
+  <td>56</td>
+  <td>58</td>
+  <td>41</td>
+  <td>48</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>226</td>
+  <td>0</td>
+  <td>23</td>
+  <td><strong>3058</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2652559" target="_blank">Nmosohwo Ifeanyi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>P</td>
+  <td>47</td>
+  <td>274</td>
+  <td>30</td>
+  <td>33</td>
+  <td>356</td>
+  <td>39</td>
+  <td>48</td>
+  <td>43</td>
+  <td>138</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>2955</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2643753" target="_blank">Adisa Okwaraji</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>54</td>
+  <td>375</td>
+  <td>42</td>
+  <td>58</td>
+  <td>264</td>
+  <td>56</td>
+  <td>87</td>
+  <td>52</td>
+  <td>96</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>151</td>
+  <td>0</td>
+  <td>25</td>
+  <td><strong>2825</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2648556" target="_blank">Unwanaabasi Chipper</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>30</td>
+  <td>249</td>
+  <td>34</td>
+  <td>44</td>
+  <td>264</td>
+  <td>38</td>
+  <td>47</td>
+  <td>33</td>
+  <td>85</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>0</td>
+  <td>16</td>
+  <td><strong>2542</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2659485" target="_blank">Orouwa Fregene</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>46</td>
+  <td>263</td>
+  <td>49</td>
+  <td>58</td>
+  <td>200</td>
+  <td>122</td>
+  <td>49</td>
+  <td>50</td>
+  <td>192</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>163</td>
+  <td>0</td>
+  <td>11</td>
+  <td><strong>2470</strong></td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2659902" target="_blank">Iglesias Díaz</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>54</td>
+  <td>279</td>
+  <td>73</td>
+  <td>56</td>
+  <td>212</td>
+  <td>62</td>
+  <td>60</td>
+  <td>52</td>
+  <td>52</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>202</td>
+  <td>0</td>
+  <td>13</td>
+  <td><strong>2338</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2652279" target="_blank">Ewoban Mandjeck</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>36</td>
+  <td>217</td>
+  <td>73</td>
+  <td>45</td>
+  <td>180</td>
+  <td>31</td>
+  <td>99</td>
+  <td>27</td>
+  <td>111</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>2257</strong></td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647590" target="_blank">Elochukwu Emeobo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>37</td>
+  <td>56</td>
+  <td>86</td>
+  <td>186</td>
+  <td>254</td>
+  <td>41</td>
+  <td>40</td>
+  <td>54</td>
+  <td>260</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>2242</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2657360" target="_blank">Adisa Ognonna</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>56</td>
+  <td>306</td>
+  <td>61</td>
+  <td>57</td>
+  <td>271</td>
+  <td>42</td>
+  <td>45</td>
+  <td>49</td>
+  <td>79</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>10</td>
+  <td><strong>2088</strong></td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2662914" target="_blank">Eghosa Amunize</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>S</td>
+  <td>60</td>
+  <td>299</td>
+  <td>43</td>
+  <td>57</td>
+  <td>202</td>
+  <td>47</td>
+  <td>47</td>
+  <td>50</td>
+  <td>54</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>9</td>
+  <td><strong>1814</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2667780" target="_blank">Ajeigbe Ajagun</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>40</td>
+  <td>291</td>
+  <td>47</td>
+  <td>48</td>
+  <td>214</td>
+  <td>35</td>
+  <td>45</td>
+  <td>33</td>
+  <td>40</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>3</td>
+  <td><strong>1742</strong></td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2668409" target="_blank">Abiodun Emenalo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>43</td>
+  <td>183</td>
+  <td>39</td>
+  <td>35</td>
+  <td>259</td>
+  <td>46</td>
+  <td>41</td>
+  <td>28</td>
+  <td>119</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1700</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2649593" target="_blank">Nwankwo Udebuluzor</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>243</td>
+  <td>45</td>
+  <td>43</td>
+  <td>32</td>
+  <td>269</td>
+  <td>31</td>
+  <td>48</td>
+  <td>33</td>
+  <td>242</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>24</td>
+  <td><strong>1658</strong></td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2666958" target="_blank">Okpere Kingsley</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>P</td>
+  <td>34</td>
+  <td>256</td>
+  <td>43</td>
+  <td>32</td>
+  <td>220</td>
+  <td>48</td>
+  <td>28</td>
+  <td>43</td>
+  <td>27</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1615</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2665808" target="_blank">Enefiok Abanda</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>32</td>
+  <td>280</td>
+  <td>39</td>
+  <td>40</td>
+  <td>141</td>
+  <td>46</td>
+  <td>27</td>
+  <td>43</td>
+  <td>27</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>25</td>
+  <td><strong>1546</strong></td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2673464" target="_blank">Ayila Diop</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>43</td>
+  <td>224</td>
+  <td>38</td>
+  <td>35</td>
+  <td>202</td>
+  <td>44</td>
+  <td>27</td>
+  <td>42</td>
+  <td>45</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>1</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1494</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>21</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2672572" target="_blank">Wilmer Peusen</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/nl.png"></td>
+  <td>PS</td>
+  <td>47</td>
+  <td>167</td>
+  <td>45</td>
+  <td>48</td>
+  <td>242</td>
+  <td>46</td>
+  <td>46</td>
+  <td>27</td>
+  <td>28</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1425</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="zaloznici" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top záložníci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620074" target="_blank">Imaabasi Ezeji</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>42</td>
+  <td>301</td>
+  <td>217</td>
+  <td>44</td>
+  <td>329</td>
+  <td>48</td>
+  <td>121</td>
+  <td>46</td>
+  <td>121</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>12</td>
+  <td><strong>3602</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2638083" target="_blank">Olatunde Osayi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>58</td>
+  <td>275</td>
+  <td>258</td>
+  <td>48</td>
+  <td>267</td>
+  <td>40</td>
+  <td>45</td>
+  <td>41</td>
+  <td>187</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>156</td>
+  <td>0</td>
+  <td>58</td>
+  <td><strong>3435</strong></td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2622389" target="_blank">Abiodun Ojigwe</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>56</td>
+  <td>150</td>
+  <td>202</td>
+  <td>109</td>
+  <td>303</td>
+  <td>70</td>
+  <td>100</td>
+  <td>54</td>
+  <td>112</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>18</td>
+  <td><strong>3076</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2632236" target="_blank">Osezua Udeze</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>30</td>
+  <td>130</td>
+  <td>198</td>
+  <td>38</td>
+  <td>270</td>
+  <td>36</td>
+  <td>37</td>
+  <td>43</td>
+  <td>250</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>1</td>
+  <td><strong>2954</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2633815" target="_blank">Adenkule Dogara</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>41</td>
+  <td>129</td>
+  <td>175</td>
+  <td>35</td>
+  <td>265</td>
+  <td>48</td>
+  <td>39</td>
+  <td>45</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>2</td>
+  <td><strong>2899</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2650143" target="_blank">Alan Cross</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/en2.png"></td>
+  <td>L</td>
+  <td>62</td>
+  <td>218</td>
+  <td>237</td>
+  <td>52</td>
+  <td>216</td>
+  <td>49</td>
+  <td>58</td>
+  <td>58</td>
+  <td>63</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>15</td>
+  <td><strong>2311</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="utocnici" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Top útočníci</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>věk</strong></td>
+  <td><strong>jméno</strong></td>
+  <td><strong>klub</strong></td>
+  <td><strong> </strong></td>
+  <td><strong>post</strong></td>
+  <td><strong>G</strong></td>
+  <td><strong>O</strong></td>
+  <td><strong>U</strong></td>
+  <td><strong>S</strong></td>
+  <td><strong>T</strong></td>
+  <td><strong>H</strong></td>
+  <td><strong>A</strong></td>
+  <td><strong>P</strong></td>
+  <td><strong>K</strong></td>
+  <td><strong>Gr</strong></td>
+  <td><strong>Ga</strong></td>
+  <td><strong>Sd</strong></td>
+  <td><strong>Sz</strong></td>
+  <td><strong>Kr</strong></td>
+  <td><strong>Kv</strong></td>
+  <td><strong>Z</strong></td>
+  <td><strong>SKILL</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630876" target="_blank">Jordy van Gerwen</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/nl.png"></td>
+  <td>PS</td>
+  <td>45</td>
+  <td>54</td>
+  <td>305</td>
+  <td>247</td>
+  <td>328</td>
+  <td>53</td>
+  <td>53</td>
+  <td>54</td>
+  <td>101</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>240</td>
+  <td>0</td>
+  <td>29</td>
+  <td><strong>3476</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2648233" target="_blank">Chukwubuikem Emmanuel</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>58</td>
+  <td>40</td>
+  <td>330</td>
+  <td>419</td>
+  <td>309</td>
+  <td>58</td>
+  <td>48</td>
+  <td>56</td>
+  <td>58</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>35</td>
+  <td><strong>3376</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2631102" target="_blank">Emenike Adegoke</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>41</td>
+  <td>33</td>
+  <td>218</td>
+  <td>227</td>
+  <td>206</td>
+  <td>42</td>
+  <td>41</td>
+  <td>40</td>
+  <td>59</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>253</td>
+  <td>0</td>
+  <td>30</td>
+  <td><strong>2794</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>29</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2622389" target="_blank">Abiodun Ojigwe</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>56</td>
+  <td>150</td>
+  <td>202</td>
+  <td>109</td>
+  <td>303</td>
+  <td>70</td>
+  <td>100</td>
+  <td>54</td>
+  <td>112</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>18</td>
+  <td><strong>2788</strong></td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2646389" target="_blank">Otuonye Kabiru</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>56</td>
+  <td>38</td>
+  <td>201</td>
+  <td>165</td>
+  <td>238</td>
+  <td>43</td>
+  <td>101</td>
+  <td>48</td>
+  <td>100</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>0</td>
+  <td>13</td>
+  <td><strong>2717</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>30</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2620074" target="_blank">Imaabasi Ezeji</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>42</td>
+  <td>301</td>
+  <td>217</td>
+  <td>44</td>
+  <td>329</td>
+  <td>48</td>
+  <td>121</td>
+  <td>46</td>
+  <td>121</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>12</td>
+  <td><strong>2702</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2638083" target="_blank">Olatunde Osayi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>58</td>
+  <td>275</td>
+  <td>258</td>
+  <td>48</td>
+  <td>267</td>
+  <td>40</td>
+  <td>45</td>
+  <td>41</td>
+  <td>187</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>156</td>
+  <td>0</td>
+  <td>58</td>
+  <td><strong>2596</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647590" target="_blank">Elochukwu Emeobo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>37</td>
+  <td>56</td>
+  <td>86</td>
+  <td>186</td>
+  <td>254</td>
+  <td>41</td>
+  <td>40</td>
+  <td>54</td>
+  <td>260</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>2580</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2632236" target="_blank">Osezua Udeze</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>30</td>
+  <td>130</td>
+  <td>198</td>
+  <td>38</td>
+  <td>270</td>
+  <td>36</td>
+  <td>37</td>
+  <td>43</td>
+  <td>250</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>1</td>
+  <td><strong>2491</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2633815" target="_blank">Adenkule Dogara</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>PS</td>
+  <td>41</td>
+  <td>129</td>
+  <td>175</td>
+  <td>35</td>
+  <td>265</td>
+  <td>48</td>
+  <td>39</td>
+  <td>45</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>2</td>
+  <td><strong>2427</strong></td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2636809" target="_blank">Ekwutosi Amachare</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>42</td>
+  <td>303</td>
+  <td>48</td>
+  <td>55</td>
+  <td>301</td>
+  <td>51</td>
+  <td>73</td>
+  <td>47</td>
+  <td>201</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>22</td>
+  <td><strong>2249</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2632621" target="_blank">Nwabunnor Alozie</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>33</td>
+  <td>347</td>
+  <td>40</td>
+  <td>28</td>
+  <td>310</td>
+  <td>82</td>
+  <td>117</td>
+  <td>36</td>
+  <td>160</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>2</td>
+  <td>17</td>
+  <td><strong>2184</strong></td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630748" target="_blank">Obari Ugwunna</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>P</td>
+  <td>33</td>
+  <td>396</td>
+  <td>41</td>
+  <td>29</td>
+  <td>320</td>
+  <td>45</td>
+  <td>131</td>
+  <td>37</td>
+  <td>120</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>14</td>
+  <td><strong>2125</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>24</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2654053" target="_blank">Adalberto Astori</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/it.png"></td>
+  <td>LS</td>
+  <td>27</td>
+  <td>29</td>
+  <td>201</td>
+  <td>112</td>
+  <td>130</td>
+  <td>34</td>
+  <td>32</td>
+  <td>42</td>
+  <td>109</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>200</td>
+  <td>0</td>
+  <td>12</td>
+  <td><strong>2058</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2652559" target="_blank">Nmosohwo Ifeanyi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>P</td>
+  <td>47</td>
+  <td>274</td>
+  <td>30</td>
+  <td>33</td>
+  <td>356</td>
+  <td>39</td>
+  <td>48</td>
+  <td>43</td>
+  <td>138</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>254</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>2032</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2648556" target="_blank">Unwanaabasi Chipper</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>30</td>
+  <td>249</td>
+  <td>34</td>
+  <td>44</td>
+  <td>264</td>
+  <td>38</td>
+  <td>47</td>
+  <td>33</td>
+  <td>85</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>251</td>
+  <td>0</td>
+  <td>16</td>
+  <td><strong>1822</strong></td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2652279" target="_blank">Ewoban Mandjeck</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>L</td>
+  <td>36</td>
+  <td>217</td>
+  <td>73</td>
+  <td>45</td>
+  <td>180</td>
+  <td>31</td>
+  <td>99</td>
+  <td>27</td>
+  <td>111</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>255</td>
+  <td>0</td>
+  <td>0</td>
+  <td><strong>1788</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>26</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2643753" target="_blank">Adisa Okwaraji</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>U</td>
+  <td>54</td>
+  <td>375</td>
+  <td>42</td>
+  <td>58</td>
+  <td>264</td>
+  <td>56</td>
+  <td>87</td>
+  <td>52</td>
+  <td>96</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>151</td>
+  <td>0</td>
+  <td>25</td>
+  <td><strong>1768</strong></td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2659485" target="_blank">Orouwa Fregene</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td>LS</td>
+  <td>46</td>
+  <td>263</td>
+  <td>49</td>
+  <td>58</td>
+  <td>200</td>
+  <td>122</td>
+  <td>49</td>
+  <td>50</td>
+  <td>192</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>163</td>
+  <td>0</td>
+  <td>11</td>
+  <td><strong>1756</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2659902" target="_blank">Iglesias Díaz</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/images/flags/ci.png"></td>
+  <td>PS</td>
+  <td>54</td>
+  <td>279</td>
+  <td>73</td>
+  <td>56</td>
+  <td>212</td>
+  <td>62</td>
+  <td>60</td>
+  <td>52</td>
+  <td>52</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>0</td>
+  <td>202</td>
+  <td>0</td>
+  <td>13</td>
+  <td><strong>1704</strong></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="topskilly" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Hráči s top skilly</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>skill</strong></td>
+  <td><strong>hodnota</strong></td>
+  <td><strong></strong></td>
+  <td><strong>jméno hráče</strong></td>
+  <td><strong>tým</strong></td>
+  <td><strong>věk</strong></td>
+</tr>
+<tr>
+  <td> <strong>G</strong>olman</td>
+  <td>350</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2663951&tym=76170" target="_blank">Nnayelum Amaefule</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>23</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>O</strong>brana</td>
+  <td>500</td>
+  <td><img src="https://www.brejk.cz/images/flags/it.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2639611&tym=76170" target="_blank">Cesare Negro</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>27</td>
+</tr>
+<tr>
+  <td> <strong>U</strong>tok</td>
+  <td>330</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2648233&tym=76170" target="_blank">Chukwubuikem Emmanuel</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>S</strong>třela</td>
+  <td>419</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2648233&tym=76170" target="_blank">Chukwubuikem Emmanuel</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>25</td>
+</tr>
+<tr>
+  <td> <strong>T</strong>echnika</td>
+  <td>356</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2652559&tym=76170" target="_blank">Nmosohwo Ifeanyi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>H</strong>lavičkování</td>
+  <td>122</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2659485&tym=75609" target="_blank">Orouwa Fregene</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td>23</td>
+</tr>
+<tr>
+  <td> <strong>A</strong>gresivita</td>
+  <td>131</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2630748&tym=76170" target="_blank">Obari Ugwunna</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>28</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>P</strong>řihrávání</td>
+  <td>63</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2663951&tym=76170" target="_blank">Nnayelum Amaefule</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>23</td>
+</tr>
+<tr>
+  <td> </td>
+  <td>63</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2663938&tym=75609" target="_blank">Chiebunigom Famewo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td>23</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> </td>
+  <td>63</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2676213&tym=75609" target="_blank">Nwankwo Emeobo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td>20</td>
+</tr>
+<tr>
+  <td> <strong>K</strong>ondice</td>
+  <td>260</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2647590&tym=76170" target="_blank">Elochukwu Emeobo</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>26</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td> <strong>Zk</strong>ušenost max</td>
+  <td>58</td>
+  <td><img src="https://www.brejk.cz/images/flags/ni.png"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_hrac&hrac=2638083&tym=76170" target="_blank">Olatunde Osayi</a></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td>27</td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 22 hráčů (70 % nej 11ka [4-4-2] - 30 % náhradníci [4-4-2])</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>29197</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>22199</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>7158</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>7122</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>7078</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>7067</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>7034</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>7000</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>6957</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>6915</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>6903</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>6877</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>6848</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>6825</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>6730</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>6687</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>2055</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>1658</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>545</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>533</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>531</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>525</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>517</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>513</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>498</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>498</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>491</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>485</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>482</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>480</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>474</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>457</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>10687</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>7945</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>2340</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>2328</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>2326</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>2309</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>2293</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>2289</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>2277</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>2267</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>2258</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>2247</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>2229</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>2217</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>2199</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>2172</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>10780</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>8752</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>2936</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>2936</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>2934</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>2910</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>2894</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>2852</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>2838</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>2830</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>2824</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>2824</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>2814</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>2793</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>2763</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>2740</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>5676</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>3845</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>1400</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>1348</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>1346</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>1341</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>1339</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>1338</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>1335</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>1333</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>1321</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>1305</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>1302</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>1285</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>1274</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>1268</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><i>Skilly hráčů vždy násobeny koeficientem věku: do 24 let včetně *1; 25 let * 0,97; 26 let * 0,94; 27 let * 0,9; 28 let a výše * 0,8 </i>
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 11 nej hráčů [4-4-2]</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>35003</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>23692</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>3861</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>3820</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>3771</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>3748</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>3740</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>3740</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>3738</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>3738</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>3734</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>3692</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>3670</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>3659</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>3646</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>3548</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>2178</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>1904</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>12857</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>8710</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>2433</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>2430</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>2408</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>2396</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>2390</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>2388</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>2388</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>2372</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>2350</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>2346</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>2337</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>2296</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>2275</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>2248</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>13116</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>8232</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>0</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>6852</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>4846</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>1428</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>1398</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>1396</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>1394</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>1390</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>1381</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>1368</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>1350</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>1346</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>1342</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>1340</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>1333</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>1309</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>1273</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="top11vstop22" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Týmy - rozdíl Top 11 vs. Top 22 (vliv lavičky)</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>Top 11</strong></td>
+  <td><strong>Top 22</strong></td>
+  <td><strong>Rozdíl</strong></td>
+  <td><strong>Poměr</strong></td>
+  <td><strong>P11</strong></td>
+  <td><strong>P22</strong></td>
+  <td><strong>Změna</strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>35003</td>
+  <td>29197</td>
+  <td>-5806</td>
+  <td>0.834</td>
+  <td>1.</td>
+  <td>1.</td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>23692</td>
+  <td>22199</td>
+  <td>-1493</td>
+  <td>0.937</td>
+  <td>2.</td>
+  <td>2.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>3861</td>
+  <td>7158</td>
+  <td>+3297</td>
+  <td>1.854</td>
+  <td>3.</td>
+  <td>3.</td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>3820</td>
+  <td>7122</td>
+  <td>+3302</td>
+  <td>1.864</td>
+  <td>4.</td>
+  <td>4.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>3771</td>
+  <td>7078</td>
+  <td>+3307</td>
+  <td>1.877</td>
+  <td>5.</td>
+  <td>5.</td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>3748</td>
+  <td>7067</td>
+  <td>+3319</td>
+  <td>1.886</td>
+  <td>6.</td>
+  <td>6.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>3740</td>
+  <td>7000</td>
+  <td>+3260</td>
+  <td>1.872</td>
+  <td>7.</td>
+  <td>8.</td>
+  <td>+1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>3740</td>
+  <td>6957</td>
+  <td>+3217</td>
+  <td>1.860</td>
+  <td>8.</td>
+  <td>9.</td>
+  <td>+1</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>3738</td>
+  <td>7034</td>
+  <td>+3296</td>
+  <td>1.882</td>
+  <td>9.</td>
+  <td>7.</td>
+  <td>-2</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>3738</td>
+  <td>6915</td>
+  <td>+3177</td>
+  <td>1.850</td>
+  <td>10.</td>
+  <td>10.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>3734</td>
+  <td>6903</td>
+  <td>+3169</td>
+  <td>1.849</td>
+  <td>11.</td>
+  <td>11.</td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>3692</td>
+  <td>6877</td>
+  <td>+3185</td>
+  <td>1.863</td>
+  <td>12.</td>
+  <td>12.</td>
+  <td>0</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>3670</td>
+  <td>6825</td>
+  <td>+3155</td>
+  <td>1.860</td>
+  <td>13.</td>
+  <td>14.</td>
+  <td>+1</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>3659</td>
+  <td>6848</td>
+  <td>+3189</td>
+  <td>1.872</td>
+  <td>14.</td>
+  <td>13.</td>
+  <td>-1</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>3646</td>
+  <td>6730</td>
+  <td>+3084</td>
+  <td>1.846</td>
+  <td>15.</td>
+  <td>15.</td>
+  <td>0</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>3548</td>
+  <td>6687</td>
+  <td>+3139</td>
+  <td>1.885</td>
+  <td>16.</td>
+  <td>16.</td>
+  <td>0</td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Top 11</strong> představuje sílu nejlepší sestavy [4-4-2] bez zohlednění věku.
+<br><strong>Top 22</strong> představuje sílu kádru při modelu 70 % nej 11ka + 30 % náhradníci [4-4-2], včetně věkové redukce.
+<br><strong>Rozdíl</strong> = Top 22 - Top 11. Ukazuje, kolik síly přidá šířka kádru.
+<br><strong>Poměr</strong> = Top 22 / Top 11. Vyjadřuje, jak moc tým těží ze své lavičky – čím vyšší, tím vyrovnanější tým.
+<br><strong>Změna</strong> vyjadřuje posun pořadí mezi tabulkou Top 11 a Top 22. Záporná hodnota znamená zlepšení po započtení šířky kádru.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="vektop22" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Průměrný věk TOP 22</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>&#8960; Věk</strong></td>
+  <td><strong>&#8960; G </strong></td>
+  <td><strong>&#8960; O </strong></td>
+  <td><strong>&#8960; Z </strong></td>
+  <td><strong>&#8960; U </strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td><strong>21.82</strong></td>
+  <td>21.50</td>
+  <td>22.00</td>
+  <td>22.00</td>
+  <td>21.25</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td><strong>22.18</strong></td>
+  <td>22.50</td>
+  <td>22.25</td>
+  <td>22.13</td>
+  <td>22.00</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td><strong>22.18</strong></td>
+  <td>21.00</td>
+  <td>22.25</td>
+  <td>22.25</td>
+  <td>22.50</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td><strong>22.18</strong></td>
+  <td>21.50</td>
+  <td>22.38</td>
+  <td>22.25</td>
+  <td>22.00</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td><strong>22.27</strong></td>
+  <td>20.50</td>
+  <td>22.63</td>
+  <td>22.13</td>
+  <td>22.75</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td><strong>22.27</strong></td>
+  <td>23.00</td>
+  <td>22.63</td>
+  <td>22.38</td>
+  <td>21.00</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td><strong>22.32</strong></td>
+  <td>20.50</td>
+  <td>22.38</td>
+  <td>22.50</td>
+  <td>22.75</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td><strong>22.50</strong></td>
+  <td>24.50</td>
+  <td>22.63</td>
+  <td>22.13</td>
+  <td>22.00</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td><strong>22.64</strong></td>
+  <td>22.50</td>
+  <td>22.88</td>
+  <td>22.88</td>
+  <td>21.75</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td><strong>22.68</strong></td>
+  <td>22.00</td>
+  <td>22.88</td>
+  <td>22.63</td>
+  <td>22.75</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td><strong>22.73</strong></td>
+  <td>25.00</td>
+  <td>22.13</td>
+  <td>22.75</td>
+  <td>22.75</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td><strong>22.77</strong></td>
+  <td>23.50</td>
+  <td>22.88</td>
+  <td>22.38</td>
+  <td>23.00</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td><strong>23.00</strong></td>
+  <td>23.50</td>
+  <td>22.50</td>
+  <td>22.88</td>
+  <td>24.00</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td><strong>23.59</strong></td>
+  <td>22.50</td>
+  <td>23.25</td>
+  <td>24.13</td>
+  <td>23.75</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td><strong>23.95</strong></td>
+  <td>26.00</td>
+  <td>23.38</td>
+  <td>23.63</td>
+  <td>24.75</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td><strong>27.18</strong></td>
+  <td>25.00</td>
+  <td>27.25</td>
+  <td>27.88</td>
+  <td>26.75</td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Průměrný věk TOP 22</strong> vychází z výběru 2 brankářů, 8 obránců, 8 záložníků a 4 útočníků dle předpočítaných skillů.
+<br><strong>Věk</strong> představuje průměrný věk celé této skupiny.
+<br>Sloupce <strong>G</strong>, <strong>O</strong>, <strong>Z</strong> a <strong>U</strong> zobrazují průměrný věk vybraných hráčů na jednotlivých postech.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="osaTymu" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats_tymy" align="center">
+<caption><strong>Síla osy týmu</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>#</strong></td>
+  <td><strong>Tým</strong></td>
+  <td><strong></strong></td>
+  <td><strong>nej G</strong></td>
+  <td><strong>nej O</strong></td>
+  <td><strong>nej Z</strong></td>
+  <td><strong>nej U</strong></td>
+  <td><strong>Osa týmu</strong></td>
+</tr>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>2178</td>
+  <td>3360</td>
+  <td>3602</td>
+  <td>3476</td>
+  <td><strong>12616</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>1904</td>
+  <td>2566</td>
+  <td>3076</td>
+  <td>2788</td>
+  <td><strong>10334</strong></td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>540</td>
+  <td>636</td>
+  <td>776</td>
+  <td>722</td>
+  <td><strong>2674</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>568</td>
+  <td>626</td>
+  <td>744</td>
+  <td>728</td>
+  <td><strong>2666</strong></td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>588</td>
+  <td>630</td>
+  <td>756</td>
+  <td>682</td>
+  <td><strong>2656</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>496</td>
+  <td>686</td>
+  <td>796</td>
+  <td>671</td>
+  <td><strong>2649</strong></td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>547</td>
+  <td>621</td>
+  <td>750</td>
+  <td>707</td>
+  <td><strong>2625</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>494</td>
+  <td>627</td>
+  <td>758</td>
+  <td>740</td>
+  <td><strong>2619</strong></td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>544</td>
+  <td>614</td>
+  <td>754</td>
+  <td>700</td>
+  <td><strong>2612</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>568</td>
+  <td>602</td>
+  <td>742</td>
+  <td>696</td>
+  <td><strong>2608</strong></td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>517</td>
+  <td>637</td>
+  <td>764</td>
+  <td>684</td>
+  <td><strong>2602</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>478</td>
+  <td>656</td>
+  <td>768</td>
+  <td>680</td>
+  <td><strong>2582</strong></td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>557</td>
+  <td>611</td>
+  <td>733</td>
+  <td>679</td>
+  <td><strong>2580</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>496</td>
+  <td>634</td>
+  <td>758</td>
+  <td>662</td>
+  <td><strong>2550</strong></td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>488</td>
+  <td>582</td>
+  <td>726</td>
+  <td>704</td>
+  <td><strong>2500</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>490</td>
+  <td>609</td>
+  <td>719</td>
+  <td>638</td>
+  <td><strong>2456</strong></td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><strong>Síla osy týmu</strong> představuje součet nejlepších hráčů na klíčových postech.
+<br>Do osy se započítává nejlepší <strong>brankář</strong>, <strong>obránce</strong>, <strong>záložník</strong> a <strong>útočník</strong> daného týmu.
+<br><strong>Osa</strong> ukazuje sílu základní kostry týmu.
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="skillytymy" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Týmy dle skillů - 22 hráčů (60 % nej 11ka [4-4-2] - 40 % náhradníci [4-4-2]) - Dle Huntize</strong></caption>
+  <tr>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Celkem</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>31450</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>22480</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>7094</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>7081</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>7023</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>7021</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>6996</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>6964</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>6898</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>6870</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>6835</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>6834</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>6801</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>6772</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>6682</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>6665</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Brankáři</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>2056</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>1707</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>532</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>521</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>519</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>514</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>509</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>502</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>494</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>490</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>489</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>481</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>478</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>476</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>472</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>457</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Obrana</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>11296</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>7690</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>2311</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>2307</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>2305</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>2286</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>2280</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>2265</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>2258</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>2243</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>2241</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>2225</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>2211</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>2192</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>2185</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>2155</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Záloha</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>12122</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>8942</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>2926</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>2917</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>2915</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>2904</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>2880</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>2846</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>2818</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>2817</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>2814</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>2805</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>2801</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>2786</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>2751</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>2737</td>
+</tr>
+</table>
+  </td>
+  <td>
+<table class="tab_stats" align="center">
+<caption><strong>Útok</strong></caption>
+<tr>
+  <td>1.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank">Snorlax team</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16" height="16"></td>
+  <td>5975</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>2.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank">FK Netřebice</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16" height="16"></td>
+  <td>4141</td>
+</tr>
+<tr>
+  <td>3.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank">Gidan Damao Imagu</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16" height="16"></td>
+  <td>1390</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>4.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank">S.C. Wagaho Bulls</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16" height="16"></td>
+  <td>1346</td>
+</tr>
+<tr>
+  <td>5.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank">Wuro Mobido Warriors...</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16" height="16"></td>
+  <td>1339</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank">SC Muduringao</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16" height="16"></td>
+  <td>1334</td>
+</tr>
+<tr>
+  <td>7.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank">F.C. Inamere Union</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16" height="16"></td>
+  <td>1332</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>8.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank">Yamari Miners</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16" height="16"></td>
+  <td>1331</td>
+</tr>
+<tr>
+  <td>9.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank">Mazangamo Dragons</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16" height="16"></td>
+  <td>1324</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank">Gweyako</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16" height="16"></td>
+  <td>1318</td>
+</tr>
+<tr>
+  <td>11.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank">Tamuna Ama Marines</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16" height="16"></td>
+  <td>1316</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>12.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank">Assamanka Flames</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16" height="16"></td>
+  <td>1290</td>
+</tr>
+<tr>
+  <td>13.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank">S.C. Gidan Anju</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16" height="16"></td>
+  <td>1288</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>14.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank">FC Kankuru Inferno</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16" height="16"></td>
+  <td>1277</td>
+</tr>
+<tr>
+  <td>15.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank">Umiaghwa Pirates</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16" height="16"></td>
+  <td>1266</td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>16.</td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank">AC Egedegebe</a></td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16" height="16"></td>
+  <td>1265</td>
+</tr>
+</table>
+  </td>
+</tr>
+</table>
+<div align="center" class="mensi_pismo">
+<br><i>Skilly hráčů vždy násobeny koeficientem věku: do 24 let včetně *1; 25 let * 0,98; 26 let * 0,9+; 27 let * 0,94; 28 let * 0,92; 29 let * 0.91; 30 let * 0.9 </i>
+</div>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="vek" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Průměrný věk</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td width="50"><strong>průměr</strong></td>
+  <td></td>
+  <td width="150"><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20.77</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank"> FK Netřebice</a></td>
+</tr>
+<tr>
+  <td>22.10</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank"> Assamanka Flames</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank"> Gidan Damao Imagu</a></td>
+</tr>
+<tr>
+  <td>22.20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank"> Yamari Miners</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.30</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank"> F.C. Inamere Union</a></td>
+</tr>
+<tr>
+  <td>22.30</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank"> Mazangamo Dragons</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.35</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank"> S.C. Gidan Anju</a></td>
+</tr>
+<tr>
+  <td>22.40</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank"> SC Muduringao</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.55</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank"> Tamuna Ama Marines</a></td>
+</tr>
+<tr>
+  <td>22.55</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank"> Umiaghwa Pirates</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.55</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank"> Wuro Mobido Warriors</a></td>
+</tr>
+<tr>
+  <td>22.65</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank"> FC Kankuru Inferno</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>22.70</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank"> S.C. Wagaho Bulls</a></td>
+</tr>
+<tr>
+  <td>22.80</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank"> AC Egedegebe</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>23.15</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank"> Gweyako</a></td>
+</tr>
+<tr>
+  <td>23.83</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank"> Snorlax team</a></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="zkusenost" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Průměrná zkušenost</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td width="50"><strong>průměr</strong></td>
+  <td></td>
+  <td width="150"><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>10.77</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank"> Snorlax team</a></td>
+</tr>
+<tr>
+  <td>6.65</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank"> Gidan Damao Imagu</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.60</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank"> Assamanka Flames</a></td>
+</tr>
+<tr>
+  <td>6.60</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank"> AC Egedegebe</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.60</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank"> Wuro Mobido Warriors</a></td>
+</tr>
+<tr>
+  <td>6.50</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank"> F.C. Inamere Union</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.45</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank"> FC Kankuru Inferno</a></td>
+</tr>
+<tr>
+  <td>6.45</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank"> Yamari Miners</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.40</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank"> Mazangamo Dragons</a></td>
+</tr>
+<tr>
+  <td>6.35</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank"> Tamuna Ama Marines</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.35</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank"> Gweyako</a></td>
+</tr>
+<tr>
+  <td>6.30</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank"> S.C. Wagaho Bulls</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>6.25</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank"> S.C. Gidan Anju</a></td>
+</tr>
+<tr>
+  <td>6.25</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank"> SC Muduringao</a></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>5.95</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank"> Umiaghwa Pirates</a></td>
+</tr>
+<tr>
+  <td>3.91</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16"></td>
+  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank"> FK Netřebice</a></td>
+</tr>
+</table>
+<br><hr><br>
+<div align="right"><a href="#nahoru" id="poctyhracu" class="mensi_pismo">[nahoru]</a></div>
+<table class="tab_stats" align="center">
+  <caption><strong>Počty hráčů v klubech</strong></caption>
+<tr class="hlava_tab_stats_tr">
+  <td><strong>počet</strong></td>
+  <td><strong></strong></td>
+  <td><strong>tým</strong></td>
+</tr>
+<tr class="sudy_radek_tab_stats">
+  <td>79</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_75609.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=75609" target="_blank"> FK Netřebice</a></td></tr>
+<tr>
+  <td>35</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76170.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76170" target="_blank"> Snorlax team</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78923.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78923" target="_blank"> AC Egedegebe</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78551.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78551" target="_blank"> Assamanka Flames</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77685.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77685" target="_blank"> F.C. Inamere Union</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_77456.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=77456" target="_blank"> FC Kankuru Inferno</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79170.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79170" target="_blank"> Gidan Damao Imagu</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78380.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78380" target="_blank"> Gweyako</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78505.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78505" target="_blank"> Mazangamo Dragons</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78340.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78340" target="_blank"> S.C. Gidan Anju</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_78689.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=78689" target="_blank"> S.C. Wagaho Bulls</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79195.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79195" target="_blank"> SC Muduringao</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76518.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76518" target="_blank"> Tamuna Ama Marines</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_76878.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=76878" target="_blank"> Umiaghwa Pirates</a></td></tr>
+<tr class="sudy_radek_tab_stats">
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79017.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79017" target="_blank"> Wuro Mobido Warriors</a></td></tr>
+<tr>
+  <td>20</td>
+  <td><img src="https://www.brejk.cz/img_user/img1_79240.jpg" width="16"></td>  <td><a href="https://www.brejk.cz/index.php?p=info_tym&tym=79240" target="_blank"> Yamari Miners</a></td></tr>
+</table>
+<br><hr><br>
+<table class="tab_stats" align="center">
+<tr>
+  <td>
+  Vygenerováno: @StatsCrawler 2026-09-28 10:11:19 AM
+ - <a href="https://www.brejk.cz/index.php?p=brejk_clanek&novinka=24390" target="_blank">Metodika statistik</a></td>
+</tr>
+</table>
+<br><br><br>
+<script>
+  const reportButtons = document.querySelectorAll('.report-btn');
+  const reportSections = document.querySelectorAll('.report-section');
+
+  reportButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const target = button.dataset.target;
+
+      reportButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+      reportSections.forEach(section => {
+        section.classList.toggle('active', section.id === target);
+      });
+    });
+  });
+</script>
+<script>
+  function setFrameHeight() {
+    try {
+      const frame = window.frameElement;
+      if (frame) {
+        const height = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight
+        ) + 20;
+
+        frame.style.height = height + 'px';
+      }
+    } catch (e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const sections = document.querySelectorAll('.report-section');
+    sections.forEach((section, index) => {
+      section.style.display = index === 0 ? 'block' : 'none';
+    });
+
+    setFrameHeight();
+  });
+
+  window.addEventListener('load', setFrameHeight);
+
+  document.addEventListener('click', function () {
+    setTimeout(setFrameHeight, 20);
+  });
+</script>
+</body>
+</html>
